@@ -1,5 +1,6 @@
 /* ============================================
-   Monitor.IA — Atual Assessoria — Script v3
+   Monitor.IA — Atual Assessoria — Script v4
+   Multi-user login via localStorage
    HTML/CSS/JS puro — localStorage only
    Cada navegador/dispositivo mantém dados próprios.
    ============================================ */
@@ -40,7 +41,13 @@ var DEFAULT_OPERADORES = [
     {nome:"GABRIELLY MARTINS RODRIGUES",turno:"Tarde",carteira:"AEGEA"}
 ];
 
+/* ======= DEFAULT USERS ======= */
+var DEFAULT_USERS = [
+    {login:"admin", senha:"admin123", nome:"Administrador", cargo:"Administrador"}
+];
+
 /* ======= STORAGE KEYS ======= */
+var SK_USERS = "monitorIA_users";
 var SK_CONFIG = "monitorIA_config";
 var SK_OPS = "monitorIA_operadores";
 var SK_AVAL = "monitorIA_avaliacoes";
@@ -57,11 +64,42 @@ function qs(s){return document.querySelector(s)}
 function qsa(s){return document.querySelectorAll(s)}
 function safeJSON(raw,fallback){try{return JSON.parse(raw)}catch(e){return fallback}}
 
-/* ======= CONFIG (user/pass/senha ativa) ======= */
+/* ======= USERS (multi-user) ======= */
+function loadUsers(){
+    var raw = localStorage.getItem(SK_USERS);
+    if(raw){var u=safeJSON(raw,null);if(u&&u.length)return u}
+    /* Migração: se existia config antiga com username/password, migra para o novo formato */
+    var oldCfg = localStorage.getItem(SK_CONFIG);
+    if(oldCfg){
+        var cfg = safeJSON(oldCfg,null);
+        if(cfg && cfg.username && cfg.password){
+            var migrated = [{login:cfg.username, senha:cfg.password, nome:cfg.username, cargo:"Administrador"}];
+            localStorage.setItem(SK_USERS, JSON.stringify(migrated));
+            return migrated;
+        }
+    }
+    localStorage.setItem(SK_USERS, JSON.stringify(DEFAULT_USERS));
+    return JSON.parse(JSON.stringify(DEFAULT_USERS));
+}
+function saveUsers(users){localStorage.setItem(SK_USERS, JSON.stringify(users))}
+
+function getLoggedUser(){
+    var raw = localStorage.getItem(SK_SESSION);
+    if(!raw) return null;
+    var session = safeJSON(raw, null);
+    if(!session || !session.login) return null;
+    var users = loadUsers();
+    for(var i=0;i<users.length;i++){
+        if(users[i].login === session.login) return users[i];
+    }
+    return null;
+}
+
+/* ======= CONFIG (sistema — senhaAtiva) ======= */
 function loadConfig(){
     var raw = localStorage.getItem(SK_CONFIG);
     if(raw){var c=safeJSON(raw,null);if(c)return c}
-    var def={username:"admin",password:"admin123",senhaAtiva:true};
+    var def={senhaAtiva:true};
     localStorage.setItem(SK_CONFIG,JSON.stringify(def));
     return def;
 }
@@ -134,13 +172,18 @@ function checkMonthReset(){
     saveAval(a);
 }
 
-/* ======= LOGIN ======= */
+/* ======= LOGIN (multi-user) ======= */
 function doLogin(){
-    var cfg=loadConfig();
-    var u=ge("loginUser").value.trim(),p=ge("loginPass").value;
-    if(u===cfg.username&&p===cfg.password){
+    var loginVal=ge("loginUser").value.trim().toLowerCase();
+    var passVal=ge("loginPass").value;
+    var users=loadUsers();
+    var found=null;
+    for(var i=0;i<users.length;i++){
+        if(users[i].login.toLowerCase()===loginVal && users[i].senha===passVal){found=users[i];break}
+    }
+    if(found){
         ge("loginError").style.display="none";
-        localStorage.setItem(SK_SESSION,"1");
+        localStorage.setItem(SK_SESSION, JSON.stringify({login:found.login, nome:found.nome, cargo:found.cargo}));
         showApp();
     }else{
         ge("loginError").style.display="block";
@@ -150,28 +193,25 @@ function doLogout(){
     localStorage.removeItem(SK_SESSION);
     if(clockInterval)clearInterval(clockInterval);
     ge("appContainer").style.display="none";
-    var cfg=loadConfig();
-    if(cfg.senhaAtiva){
-        ge("loginScreen").style.display="flex";
-        ge("loginUser").value="";ge("loginPass").value="";
-    }else{
-        ge("loginScreen").style.display="flex";
-        ge("loginUser").value="";ge("loginPass").value="";
-    }
+    ge("loginScreen").style.display="flex";
+    ge("loginUser").value="";
+    ge("loginPass").value="";
 }
 function checkSession(){
     var cfg=loadConfig();
     if(!cfg.senhaAtiva)return true;
-    return localStorage.getItem(SK_SESSION)==="1";
+    var user=getLoggedUser();
+    return user!==null;
 }
 
 /* ======= APP INIT ======= */
 function showApp(){
     ge("loginScreen").style.display="none";
     ge("appContainer").style.display="flex";
-    var cfg=loadConfig();
-    ge("headerUserName").textContent=cfg.username;
-    ge("sidebarUser").textContent="Logado: "+cfg.username;
+    var user=getLoggedUser();
+    var displayName = user ? user.nome : "Admin";
+    ge("headerUserName").textContent="Olá, "+displayName;
+    ge("sidebarUser").textContent=user ? (user.nome+" · "+user.cargo) : "";
     startClock();
     switchTab("visaoGeral");
 }
@@ -418,7 +458,7 @@ function renderCalibragem(){
 
 /* ======= RENDER: CONFIGURAÇÕES ======= */
 function renderConfiguracoes(){
-    var cfg=loadConfig(),ops=loadOperadores();
+    var cfg=loadConfig(),ops=loadOperadores(),users=loadUsers();
     var html='';
 
     /* INFO */
@@ -426,13 +466,32 @@ function renderConfiguracoes(){
 
     /* CONTROLE DE ACESSO */
     html+='<div class="config-section"><h3><span class="material-icons-round">lock</span> Controle de Acesso</h3>';
-    html+='<p>Gerencie o login do sistema. Se desativar a senha, o sistema abre direto sem tela de login.</p>';
+    html+='<p>Se desativar a senha, o sistema abre direto sem tela de login.</p>';
     html+='<div class="toggle-row"><span class="toggle-label">Senha ativa (exigir login)</span><label class="toggle-switch"><input type="checkbox" id="toggleSenha" '+(cfg.senhaAtiva?'checked':'')+' onchange="toggleSenhaAtiva()"><span class="toggle-slider"></span></label></div>';
-    html+='<div style="margin-top:12px" id="cfgAccessFields">';
-    html+='<div class="cfg-row"><div class="cfg-row-info"><div class="cfg-row-name">Usuário: <strong>'+cfg.username+'</strong></div><div class="cfg-row-sub">Administrador — acesso total</div></div>';
-    html+='<div class="cfg-row-actions"><button class="btn-sm" onclick="modalAlterarUsuario()"><span class="material-icons-round">edit</span> Alterar Usuário</button>';
-    html+='<button class="btn-sm" onclick="modalAlterarSenha()"><span class="material-icons-round">key</span> Alterar Senha</button></div></div>';
-    html+='</div></div>';
+    html+='</div>';
+
+    /* GERENCIAR USUÁRIOS */
+    html+='<div class="config-section"><h3><span class="material-icons-round">manage_accounts</span> Gerenciar Usuários</h3>';
+    html+='<p>Adicione, edite ou remova usuários do sistema. Cada usuário tem login, senha, nome e cargo próprios.</p>';
+    html+='<div class="config-toolbar"><button class="btn-primary" onclick="modalAddUser()"><span class="material-icons-round" style="font-size:18px">person_add</span> Adicionar Usuário</button></div>';
+    for(var u=0;u<users.length;u++){
+        var usr=users[u];
+        var initials=usr.nome.split(" ").map(function(w){return w[0]}).slice(0,2).join("").toUpperCase();
+        var isAdmin=usr.cargo.toLowerCase()==="administrador";
+        var badgeClass=isAdmin?"admin-badge":"user-badge-tag";
+        var sl=usr.login.replace(/'/g,"\\'");
+        html+='<div class="cfg-row">';
+        html+='<div class="user-avatar-sm">'+initials+'</div>';
+        html+='<div class="cfg-row-info"><div class="cfg-row-name">'+usr.nome+'<span class="user-badge '+badgeClass+'">'+usr.cargo+'</span></div><div class="cfg-row-sub">Login: '+usr.login+'</div></div>';
+        html+='<div class="cfg-row-actions">';
+        html+='<button class="btn-sm" onclick="modalEditUser('+u+')"><span class="material-icons-round">edit</span> Editar</button>';
+        html+='<button class="btn-sm" onclick="modalChangeUserPass('+u+')"><span class="material-icons-round">key</span> Senha</button>';
+        if(users.length>1){
+            html+='<button class="btn-sm danger" onclick="confirmarRemoverUser(\''+sl+'\')"><span class="material-icons-round">delete</span> Remover</button>';
+        }
+        html+='</div></div>';
+    }
+    html+='</div>';
 
     /* OPERADORES */
     html+='<div class="config-section"><h3><span class="material-icons-round">people</span> Operadores</h3>';
@@ -479,29 +538,114 @@ function renderConfiguracoes(){
     ge("configContent").innerHTML=html;
 }
 
-/* CONFIG: ACESSO */
+/* ======= CONFIG: CONTROLE DE ACESSO ======= */
 function toggleSenhaAtiva(){
     var cfg=loadConfig();cfg.senhaAtiva=ge("toggleSenha").checked;saveConfig(cfg);
-    if(!cfg.senhaAtiva)localStorage.setItem(SK_SESSION,"1");
-}
-function modalAlterarUsuario(){
-    var cfg=loadConfig();
-    abrirModal("Alterar Usuário",'<div class="field-group"><label>Novo Usuário</label><input type="text" id="mNewUser" value="'+cfg.username+'"></div><button class="btn-primary" onclick="salvarNovoUsuario()">Salvar</button>');
-}
-function salvarNovoUsuario(){
-    var v=ge("mNewUser").value.trim();if(!v)return;
-    var cfg=loadConfig();cfg.username=v;saveConfig(cfg);fecharModal();renderConfiguracoes();
-    ge("headerUserName").textContent=v;ge("sidebarUser").textContent="Logado: "+v;
-}
-function modalAlterarSenha(){
-    abrirModal("Alterar Senha",'<div class="field-group"><label>Nova Senha</label><input type="password" id="mNewPass" placeholder="Nova senha"></div><button class="btn-primary" onclick="salvarNovaSenha()">Salvar</button>');
-}
-function salvarNovaSenha(){
-    var v=ge("mNewPass").value;if(!v)return;
-    var cfg=loadConfig();cfg.password=v;saveConfig(cfg);fecharModal();renderConfiguracoes();
+    if(!cfg.senhaAtiva){
+        var user=getLoggedUser();
+        if(!user){
+            var users=loadUsers();
+            localStorage.setItem(SK_SESSION, JSON.stringify({login:users[0].login, nome:users[0].nome, cargo:users[0].cargo}));
+        }
+    }
 }
 
-/* CONFIG: OPERADORES */
+/* ======= GERENCIAR USUÁRIOS ======= */
+function modalAddUser(){
+    abrirModal("Adicionar Usuário",
+        '<div class="field-group"><label>Login</label><input type="text" id="mUserLogin" placeholder="Ex: vandreisson"></div>'+
+        '<div class="field-group"><label>Senha</label><input type="password" id="mUserSenha" placeholder="Senha de acesso"></div>'+
+        '<div class="field-group"><label>Nome Completo</label><input type="text" id="mUserNome" placeholder="Ex: Vandreisson Silva"></div>'+
+        '<div class="field-group"><label>Cargo</label><select id="mUserCargo"><option value="Administrador">Administrador</option><option value="Supervisor" selected>Supervisor</option><option value="Coordenador">Coordenador</option><option value="Analista">Analista</option><option value="Monitor">Monitor</option></select></div>'+
+        '<button class="btn-primary" onclick="salvarNovoUser()">Adicionar</button>');
+}
+function salvarNovoUser(){
+    var login=ge("mUserLogin").value.trim().toLowerCase();
+    var senha=ge("mUserSenha").value;
+    var nome=ge("mUserNome").value.trim();
+    var cargo=ge("mUserCargo").value;
+    if(!login||!senha||!nome){alert("Preencha todos os campos.");return}
+    var users=loadUsers();
+    for(var i=0;i<users.length;i++){
+        if(users[i].login.toLowerCase()===login){alert("Já existe um usuário com este login.");return}
+    }
+    users.push({login:login, senha:senha, nome:nome, cargo:cargo});
+    saveUsers(users);fecharModal();renderConfiguracoes();
+}
+
+function modalEditUser(idx){
+    var users=loadUsers(),usr=users[idx];if(!usr)return;
+    var cargoOptions='';
+    var cargos=["Administrador","Supervisor","Coordenador","Analista","Monitor"];
+    for(var i=0;i<cargos.length;i++){
+        cargoOptions+='<option value="'+cargos[i]+'"'+(usr.cargo===cargos[i]?' selected':'')+'>'+cargos[i]+'</option>';
+    }
+    abrirModal("Editar Usuário",
+        '<div class="field-group"><label>Login</label><input type="text" id="mEdUserLogin" value="'+usr.login+'" readonly style="opacity:.6"></div>'+
+        '<div class="field-group"><label>Nome Completo</label><input type="text" id="mEdUserNome" value="'+usr.nome+'"></div>'+
+        '<div class="field-group"><label>Cargo</label><select id="mEdUserCargo">'+cargoOptions+'</select></div>'+
+        '<button class="btn-primary" onclick="salvarEditUser('+idx+')">Salvar</button>');
+}
+function salvarEditUser(idx){
+    var users=loadUsers();
+    var nome=ge("mEdUserNome").value.trim();
+    var cargo=ge("mEdUserCargo").value;
+    if(!nome){alert("Nome não pode ficar vazio.");return}
+    users[idx].nome=nome;
+    users[idx].cargo=cargo;
+    saveUsers(users);
+    /* Atualiza sessão se o usuário editado é o logado */
+    var session=safeJSON(localStorage.getItem(SK_SESSION),null);
+    if(session && session.login===users[idx].login){
+        session.nome=nome;
+        session.cargo=cargo;
+        localStorage.setItem(SK_SESSION, JSON.stringify(session));
+        ge("headerUserName").textContent="Olá, "+nome;
+        ge("sidebarUser").textContent=nome+" · "+cargo;
+    }
+    fecharModal();renderConfiguracoes();
+}
+
+function modalChangeUserPass(idx){
+    var users=loadUsers(),usr=users[idx];if(!usr)return;
+    abrirModal("Alterar Senha — "+usr.nome,
+        '<div class="field-group"><label>Nova Senha</label><input type="password" id="mChgPass" placeholder="Nova senha"></div>'+
+        '<div class="field-group"><label>Confirmar Senha</label><input type="password" id="mChgPassConfirm" placeholder="Confirme a senha"></div>'+
+        '<button class="btn-primary" onclick="salvarChangeUserPass('+idx+')">Salvar</button>');
+}
+function salvarChangeUserPass(idx){
+    var p1=ge("mChgPass").value, p2=ge("mChgPassConfirm").value;
+    if(!p1){alert("Informe a nova senha.");return}
+    if(p1!==p2){alert("As senhas não conferem.");return}
+    var users=loadUsers();
+    users[idx].senha=p1;
+    saveUsers(users);fecharModal();renderConfiguracoes();
+}
+
+function confirmarRemoverUser(login){
+    var users=loadUsers();
+    var usr=null;
+    for(var i=0;i<users.length;i++){if(users[i].login===login){usr=users[i];break}}
+    if(!usr)return;
+    abrirModal("Remover Usuário",
+        '<p style="margin-bottom:16px;color:var(--text-secondary)">Remover o usuário <strong style="color:var(--text-primary)">'+usr.nome+'</strong> ('+usr.login+')?</p>'+
+        '<p style="margin-bottom:16px;color:var(--text-muted);font-size:12px">Esta ação não pode ser desfeita.</p>'+
+        '<button class="btn-primary" style="background:var(--danger)" onclick="removerUser(\''+login.replace(/'/g,"\\'")+'\')">Confirmar Remoção</button>');
+}
+function removerUser(login){
+    var users=loadUsers();
+    users=users.filter(function(u){return u.login!==login});
+    if(users.length===0){alert("O sistema precisa de pelo menos 1 usuário.");fecharModal();return}
+    saveUsers(users);
+    /* Se removeu o próprio usuário logado, faz logout */
+    var session=safeJSON(localStorage.getItem(SK_SESSION),null);
+    if(session && session.login===login){
+        fecharModal();doLogout();return;
+    }
+    fecharModal();renderConfiguracoes();
+}
+
+/* ======= CONFIG: OPERADORES ======= */
 function modalAddOperador(){
     abrirModal("Adicionar Operador",
         '<div class="field-group"><label>Nome do Operador</label><input type="text" id="mOpNome" placeholder="Nome completo"></div>'+
@@ -538,7 +682,6 @@ function confirmarRemoverOp(nome){
 }
 function removerOp(nome){
     var ops=loadOperadores();ops=ops.filter(function(o){return o.nome!==nome});saveOperadores(ops);
-    /* remove avaliações vinculadas */
     var a=loadAval(),mk=monthKey();
     if(a[mk]){
         var keys=Object.keys(a[mk]);
@@ -548,7 +691,7 @@ function removerOp(nome){
     fecharModal();renderConfiguracoes();
 }
 
-/* CONFIG: RESET */
+/* ======= CONFIG: RESET ======= */
 function resetMesAtual(){
     if(!confirm("Salvar dados do mês no histórico e resetar?"))return;
     var md=getMonthData(),keys=Object.keys(md),soma=0,cnt=0;
@@ -675,9 +818,15 @@ document.addEventListener("keydown",function(e){if(e.key==="Enter"&&ge("loginScr
 /* ======= INIT ======= */
 (function init(){
     checkMonthReset();
+    loadUsers(); /* garante que o array de users existe */
     var cfg=loadConfig();
     if(!cfg.senhaAtiva){
-        localStorage.setItem(SK_SESSION,"1");
+        /* Se não exige login, garante uma sessão ativa */
+        var user=getLoggedUser();
+        if(!user){
+            var users=loadUsers();
+            localStorage.setItem(SK_SESSION, JSON.stringify({login:users[0].login, nome:users[0].nome, cargo:users[0].cargo}));
+        }
         showApp();
     }else if(checkSession()){
         showApp();
