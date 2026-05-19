@@ -86,42 +86,30 @@ const pontosAtencao = [
 ];
 
 // Gerar avaliações de exemplo
-function gerarAvaliacoes() {
-    const avaliacoes = [];
-    const statusList = ['Pendente', 'Aplicado', 'Aplicado', 'Aplicado', 'Recusado'];
-    const baseDate = new Date(2026, 4, 1); // Mai 2026
+const semanas = [
+  "Semana 1",
+  "Semana 2",
+  "Semana 3",
+  "Semana 4"
+];
 
-    for (let i = 0; i < 48; i++) {
-        const op = operadores[i % operadores.length];
-        const dia = Math.floor(Math.random() * 17) + 1;
-        const data = new Date(baseDate);
-        data.setDate(dia);
-        const notaIA = Math.round(60 + Math.random() * 40);
-        const diff = Math.floor(Math.random() * 11) - 5;
-        const notaHumana = Math.min(100, Math.max(50, notaIA + diff));
-        const notaFinal = Math.round((notaIA * 0.6 + notaHumana * 0.4));
+let avaliacoes = [];
 
-        avaliacoes.push({
-            id: i + 1,
-            operador: op.nome,
-            carteira: op.carteira,
-            data: data.toISOString().slice(0, 10),
-            notaIA,
-            notaHumana,
-            notaFinal,
-            status: statusList[Math.floor(Math.random() * statusList.length)],
-            pontoAtencao: pontosAtencao[Math.floor(Math.random() * pontosAtencao.length)],
-            criteriosNotas: criterios.map(c => ({
-                criterio: c,
-                nota: Math.round(50 + Math.random() * 50)
-            }))
-        });
-    }
-    return avaliacoes;
-}
+operadores.forEach((op, index) => {
+  semanas.forEach((semana, s) => {
+    avaliacoes.push({
+      id: `${index + 1}-${s + 1}`,
+      operador: op.nome,
+      turno: op.turno,
+      carteira: op.carteira,
+      semana: semana,
+      notaFinal: 0,
+      status: "Pendente",
+      pontoAtencao: "-"
+    });
+  });
 
-let avaliacoes = gerarAvaliacoes();
-
+});
 // ==========================================
 // NAVEGAÇÃO
 // ==========================================
