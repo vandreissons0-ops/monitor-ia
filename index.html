@@ -3,320 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor.ia — Painel de Avaliações</title>
+    <title>Monitor.IA — Atual Assessoria</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </head>
 <body>
 
-<!-- TOP NAV -->
-<nav class="topnav">
-    <div class="topnav-brand">
-        <i class="fa-solid fa-brain-circuit"></i>
-        <span class="brand-name">Monitor<span class="brand-dot">.ia</span></span>
-        <span class="brand-sub">Painel de Avaliações</span>
-    </div>
-    <div class="topnav-links">
-        <a href="#" class="nav-link active" data-page="visao-geral"><i class="fa-solid fa-chart-pie"></i> Visão Geral</a>
-        <a href="#" class="nav-link" data-page="avaliacoes"><i class="fa-solid fa-clipboard-check"></i> Avaliações</a>
-        <a href="#" class="nav-link" data-page="evolucao"><i class="fa-solid fa-chart-line"></i> Evolução</a>
-        <a href="#" class="nav-link" data-page="operadores"><i class="fa-solid fa-users"></i> Operadores</a>
-        <a href="#" class="nav-link" data-page="calibragem"><i class="fa-solid fa-scale-balanced"></i> Calibragem</a>
-        <a href="#" class="nav-link" data-page="relatorios"><i class="fa-solid fa-file-export"></i> Relatórios</a>
-        <a href="#" class="nav-link" data-page="configuracoes"><i class="fa-solid fa-gear"></i> Configurações</a>
-    </div>
-    <div class="topnav-right">
-        <span class="user-label"><i class="fa-solid fa-user-circle"></i> Admin</span>
-        <a href="#" class="nav-link nav-exit" id="btn-sair"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
-    </div>
-</nav>
-
-<!-- MAIN CONTENT -->
-<main class="main-content">
-
-    <!-- ===== VISÃO GERAL ===== -->
-    <section id="page-visao-geral" class="page active">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-chart-pie"></i> Visão Geral</h1>
-            <span class="page-subtitle">Resumo executivo do desempenho de qualidade</span>
+<!-- ==================== LOGIN ==================== -->
+<div id="loginScreen" class="login-screen">
+    <div class="login-card">
+        <div class="login-logo">
+            <span class="material-icons-round login-icon">monitoring</span>
+            <h1>Monitor<span class="accent">.IA</span></h1>
+            <p class="login-subtitle">Atual Assessoria de Cobrança</p>
         </div>
-        <div class="kpi-grid" id="kpi-grid"></div>
-        <div class="row-2col">
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-chart-area"></i> EVOLUÇÃO SEMANAL — MÉDIA GERAL</div>
-                <canvas id="chart-overview-line" height="260"></canvas>
+        <div class="login-form">
+            <div class="input-group">
+                <span class="material-icons-round input-icon">person</span>
+                <input type="text" id="loginUser" placeholder="Usuário" autocomplete="off">
             </div>
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-ranking-star"></i> TOP 5 OPERADORES</div>
-                <div id="top5-list" class="top5-list"></div>
+            <div class="input-group">
+                <span class="material-icons-round input-icon">lock</span>
+                <input type="password" id="loginPass" placeholder="Senha" autocomplete="off">
             </div>
+            <div id="loginError" class="login-error" style="display:none;">Usuário ou senha incorretos.</div>
+            <button id="loginBtn" class="btn-login" onclick="doLogin()">Entrar</button>
         </div>
-    </section>
-
-    <!-- ===== AVALIAÇÕES ===== -->
-    <section id="page-avaliacoes" class="page">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-clipboard-check"></i> Avaliações</h1>
-            <span class="page-subtitle">Monitorias individuais detalhadas</span>
-        </div>
-        <div class="filters-bar" id="filters-bar">
-            <div class="filter-group">
-                <label>CARTEIRA</label>
-                <select id="f-carteira"><option value="">Todas</option></select>
-            </div>
-            <div class="filter-group">
-                <label>OPERADOR</label>
-                <select id="f-operador"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label>PERÍODO</label>
-                <select id="f-periodo">
-                    <option value="">Todos</option>
-                    <option value="7">Últimos 7 dias</option>
-                    <option value="15">Últimos 15 dias</option>
-                    <option value="30">Últimos 30 dias</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>STATUS FEEDBACK</label>
-                <select id="f-status">
-                    <option value="">Todos</option>
-                    <option value="Pendente">Pendente</option>
-                    <option value="Aplicado">Aplicado</option>
-                    <option value="Recusado">Recusado</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>DATA INÍCIO</label>
-                <input type="date" id="f-data-ini">
-            </div>
-            <div class="filter-group">
-                <label>DATA FIM</label>
-                <input type="date" id="f-data-fim">
-            </div>
-            <button class="btn btn-green" id="btn-filtrar"><i class="fa-solid fa-filter"></i> Filtrar</button>
-            <button class="btn btn-outline" id="btn-limpar"><i class="fa-solid fa-eraser"></i> Limpar</button>
-        </div>
-        <div class="avaliacoes-grid" id="avaliacoes-grid"></div>
-    </section>
-
-    <!-- ===== EVOLUÇÃO ===== -->
-    <section id="page-evolucao" class="page">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-chart-line"></i> Evolução</h1>
-            <span class="page-subtitle">Acompanhamento temporal do desempenho</span>
-        </div>
-        <div class="row-2col">
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-chart-line"></i> EVOLUÇÃO SEMANAL DAS NOTAS</div>
-                <canvas id="chart-evolucao-line" height="300"></canvas>
-            </div>
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-chart-bar"></i> MÉDIA POR OPERADOR</div>
-                <canvas id="chart-evolucao-bar" height="300"></canvas>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== OPERADORES ===== -->
-    <section id="page-operadores" class="page">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-users"></i> Operadores</h1>
-            <span class="page-subtitle">Performance individual e classificação</span>
-        </div>
-        <div class="card">
-            <div class="card-header"><i class="fa-solid fa-table"></i> QUADRO DE OPERADORES</div>
-            <div class="table-wrap">
-                <table class="data-table" id="tabela-operadores">
-                    <thead>
-                        <tr>
-                            <th>OPERADOR</th>
-                            <th>TURNO</th>
-                            <th>CARTEIRA</th>
-                            <th>QTD AVALIAÇÕES</th>
-                            <th>MÉDIA FINAL</th>
-                            <th>CATEGORIA</th>
-                            <th>PONTO DE ATENÇÃO</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-operadores"></tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== CALIBRAGEM ===== -->
-    <section id="page-calibragem" class="page">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-scale-balanced"></i> Calibragem</h1>
-            <span class="page-subtitle">Comparativo entre avaliação IA e humana</span>
-        </div>
-        <div class="card">
-            <div class="card-header"><i class="fa-solid fa-code-compare"></i> COMPARATIVO DE NOTAS</div>
-            <div class="table-wrap">
-                <table class="data-table" id="tabela-calibragem">
-                    <thead>
-                        <tr>
-                            <th>OPERADOR</th>
-                            <th>DATA</th>
-                            <th>NOTA IA</th>
-                            <th>NOTA HUMANA</th>
-                            <th>DIFERENÇA</th>
-                            <th>STATUS CALIBRAGEM</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-calibragem"></tbody>
-                </table>
-            </div>
-        </div>
-        <div class="row-2col" style="margin-top:24px">
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-bullseye"></i> DISPERSÃO IA × HUMANA</div>
-                <canvas id="chart-calibragem" height="280"></canvas>
-            </div>
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-circle-info"></i> RESUMO DA CALIBRAGEM</div>
-                <div id="calibragem-resumo" class="calibragem-resumo"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== RELATÓRIOS ===== -->
-<section id="page-relatorios" class="page">
-    <div class="page-header">
-        <h1><i class="fa-solid fa-file-pdf"></i> Relatórios em PDF</h1>
-        <span class="page-subtitle">Geração dos relatórios mensais da monitoria</span>
-    </div>
-
-    <div class="relatorios-grid">
-        <div class="report-card">
-            <div class="report-icon"><i class="fa-solid fa-file-pdf"></i></div>
-            <h3>Relatório Mensal Geral</h3>
-            <p>Resumo completo do mês.</p>
-            <button class="btn btn-green" onclick="gerarRelatorioMensalPDF()">
-                <i class="fa-solid fa-download"></i> Gerar PDF
-            </button>
-        </div>
-
-        <div class="report-card">
-            <div class="report-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <h3>Relatório de Pendências</h3>
-            <p>Operadores e semanas pendentes.</p>
-            <button class="btn btn-navy" onclick="gerarRelatorioPendenciasPDF()">
-                <i class="fa-solid fa-download"></i> Gerar PDF
-            </button>
-        </div>
-
-        <div class="report-card">
-            <div class="report-icon blue"><i class="fa-solid fa-users"></i></div>
-            <h3>Relatório por Operador</h3>
-            <p>Fechamento individual de cada operador.</p>
-            <button class="btn btn-navy" onclick="gerarRelatorioOperadoresPDF()">
-                <i class="fa-solid fa-download"></i> Gerar PDF
-            </button>
-        </div>
-
-        <div class="report-card">
-            <div class="report-icon purple"><i class="fa-solid fa-clock"></i></div>
-            <h3>Relatório por Turno</h3>
-            <p>Resumo matutino e vespertino.</p>
-            <button class="btn btn-navy" onclick="gerarRelatorioTurnosPDF()">
-                <i class="fa-solid fa-download"></i> Gerar PDF
-            </button>
-        </div>
-
-        <div class="report-card">
-            <div class="report-icon green"><i class="fa-solid fa-calendar-check"></i></div>
-            <h3>Fechamento do Mês</h3>
-            <p>Relatório final para supervisor.</p>
-            <button class="btn btn-green" onclick="gerarRelatorioFechamentoPDF()">
-                <i class="fa-solid fa-download"></i> Gerar PDF
-            </button>
-        </div>
-    </div>
-</section>
-
-    <!-- ===== CONFIGURAÇÕES ===== -->
-    <section id="page-configuracoes" class="page">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-gear"></i> Configurações</h1>
-            <span class="page-subtitle">Cadastros e parâmetros do sistema</span>
-        </div>
-        <div class="config-tabs">
-            <button class="config-tab active" data-config="operadores-cfg"><i class="fa-solid fa-users"></i> Operadores</button>
-            <button class="config-tab" data-config="carteiras-cfg"><i class="fa-solid fa-wallet"></i> Carteiras</button>
-            <button class="config-tab" data-config="criterios-cfg"><i class="fa-solid fa-list-check"></i> Critérios</button>
-            <button class="config-tab" data-config="pesos-cfg"><i class="fa-solid fa-weight-scale"></i> Pesos</button>
-        </div>
-
-        <div class="config-panel active" id="operadores-cfg">
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-user-plus"></i> CADASTRO DE OPERADORES</div>
-                <div class="form-row">
-                    <input type="text" placeholder="Nome do operador" id="cfg-op-nome">
-                    <select id="cfg-op-turno">
-                        <option value="Manhã">Manhã</option>
-                        <option value="Tarde">Tarde</option>
-                        <option value="Noite">Noite</option>
-                    </select>
-                    <select id="cfg-op-carteira"></select>
-                    <button class="btn btn-green" id="btn-add-operador"><i class="fa-solid fa-plus"></i> Adicionar</button>
-                </div>
-                <div class="table-wrap" style="margin-top:16px">
-                    <table class="data-table">
-                        <thead><tr><th>NOME</th><th>TURNO</th><th>CARTEIRA</th><th>AÇÕES</th></tr></thead>
-                        <tbody id="tbody-cfg-operadores"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="config-panel" id="carteiras-cfg">
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-wallet"></i> CADASTRO DE CARTEIRAS</div>
-                <div class="form-row">
-                    <input type="text" placeholder="Nome da carteira" id="cfg-cart-nome">
-                    <button class="btn btn-green" id="btn-add-carteira"><i class="fa-solid fa-plus"></i> Adicionar</button>
-                </div>
-                <div class="tags-list" id="tags-carteiras"></div>
-            </div>
-        </div>
-
-        <div class="config-panel" id="criterios-cfg">
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-list-check"></i> CRITÉRIOS AVALIADOS</div>
-                <div class="form-row">
-                    <input type="text" placeholder="Nome do critério" id="cfg-crit-nome">
-                    <button class="btn btn-green" id="btn-add-criterio"><i class="fa-solid fa-plus"></i> Adicionar</button>
-                </div>
-                <div class="tags-list" id="tags-criterios"></div>
-            </div>
-        </div>
-
-        <div class="config-panel" id="pesos-cfg">
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-weight-scale"></i> PESOS DAS AVALIAÇÕES</div>
-                <div id="pesos-list" class="pesos-list"></div>
-                <button class="btn btn-green" style="margin-top:16px" onclick="alert('Pesos salvos com sucesso!')"><i class="fa-solid fa-save"></i> Salvar Pesos</button>
-            </div>
-        </div>
-    </section>
-
-</main>
-
-<!-- MODAL DETALHES -->
-<div class="modal-overlay" id="modal-overlay">
-    <div class="modal">
-        <div class="modal-header">
-            <h2><i class="fa-solid fa-magnifying-glass-chart"></i> Detalhes da Avaliação</h2>
-            <button class="modal-close" id="modal-close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="modal-body" id="modal-body"></div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ==================== APP ==================== -->
+<div id="appContainer" class="app-container" style="display:none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="material-icons-round sidebar-logo-icon">monitoring</span>
+            <h2 class="sidebar-title">Monitor<span class="accent">.IA</span></h2>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-btn active" data-tab="visaoGeral" onclick="switchTab('visaoGeral')">
+                <span class="material-icons-round">dashboard</span>
+                <span>Visão Geral</span>
+            </button>
+            <button class="nav-btn" data-tab="avaliacoes" onclick="switchTab('avaliacoes')">
+                <span class="material-icons-round">assignment</span>
+                <span>Avaliações</span>
+            </button>
+            <button class="nav-btn" data-tab="evolucao" onclick="switchTab('evolucao')">
+                <span class="material-icons-round">trending_up</span>
+                <span>Evolução</span>
+            </button>
+            <button class="nav-btn" data-tab="operadores" onclick="switchTab('operadores')">
+                <span class="material-icons-round">people</span>
+                <span>Operadores</span>
+            </button>
+            <button class="nav-btn" data-tab="calibragem" onclick="switchTab('calibragem')">
+                <span class="material-icons-round">tune</span>
+                <span>Calibragem</span>
+            </button>
+            <button class="nav-btn" data-tab="relatorios" onclick="switchTab('relatorios')">
+                <span class="material-icons-round">description</span>
+                <span>Relatórios</span>
+            </button>
+            <button class="nav-btn" data-tab="configuracoes" onclick="switchTab('configuracoes')">
+                <span class="material-icons-round">settings</span>
+                <span>Configurações</span>
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-logout" onclick="doLogout()">
+                <span class="material-icons-round">logout</span>
+                <span>Sair</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header class="top-header">
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <span class="material-icons-round">menu</span>
+            </button>
+            <div class="header-info">
+                <span id="headerDate" class="header-date"></span>
+                <span id="headerClock" class="header-clock"></span>
+            </div>
+            <div class="header-user">
+                <span class="material-icons-round">account_circle</span>
+                <span>Admin</span>
+            </div>
+        </header>
+
+        <!-- TAB: VISÃO GERAL -->
+        <section id="tab-visaoGeral" class="tab-content active">
+            <div class="tab-header">
+                <h2>Visão Geral</h2>
+                <p id="visaoGeralDatetime" class="tab-subtitle"></p>
+            </div>
+            <div class="kpi-grid" id="kpiGrid"></div>
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3>Progresso Semanal</h3>
+                    <canvas id="chartSemanal"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Distribuição de Status</h3>
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: AVALIAÇÕES -->
+        <section id="tab-avaliacoes" class="tab-content">
+            <div class="tab-header">
+                <h2>Avaliações</h2>
+                <p class="tab-subtitle">Operadores programados para hoje</p>
+            </div>
+            <div class="avaliacoes-layout">
+                <div class="avaliacoes-dashboard" id="avalDashboard"></div>
+                <div class="avaliacoes-list" id="avalList"></div>
+            </div>
+        </section>
+
+        <!-- TAB: EVOLUÇÃO -->
+        <section id="tab-evolucao" class="tab-content">
+            <div class="tab-header">
+                <h2>Evolução</h2>
+                <p class="tab-subtitle">Acompanhamento semanal das avaliações</p>
+            </div>
+            <div class="evolucao-content" id="evolucaoContent"></div>
+        </section>
+
+        <!-- TAB: OPERADORES -->
+        <section id="tab-operadores" class="tab-content">
+            <div class="tab-header">
+                <h2>Operadores</h2>
+                <p class="tab-subtitle">Lista completa de operadores e status mensal</p>
+            </div>
+            <div class="operadores-grid" id="operadoresGrid"></div>
+        </section>
+
+        <!-- TAB: CALIBRAGEM -->
+        <section id="tab-calibragem" class="tab-content">
+            <div class="tab-header">
+                <h2>Calibragem</h2>
+                <p class="tab-subtitle">Distribuição e calibração das notas</p>
+            </div>
+            <div class="calibragem-content" id="calibragemContent">
+                <div class="chart-card full-width">
+                    <h3>Distribuição de Notas</h3>
+                    <canvas id="chartCalibragem"></canvas>
+                </div>
+                <div class="calibragem-table-wrapper" id="calibragemTable"></div>
+            </div>
+        </section>
+
+        <!-- TAB: RELATÓRIOS -->
+        <section id="tab-relatorios" class="tab-content">
+            <div class="tab-header">
+                <h2>Relatórios</h2>
+                <p class="tab-subtitle">Geração de relatórios em PDF</p>
+            </div>
+            <div class="relatorios-grid" id="relatoriosGrid">
+                <div class="relatorio-card" onclick="gerarRelatorioMensalGeral()">
+                    <span class="material-icons-round relatorio-icon">summarize</span>
+                    <h3>Relatório Mensal Geral</h3>
+                    <p>Visão consolidada de todas as avaliações do mês.</p>
+                    <span class="btn-gerar">Gerar PDF</span>
+                </div>
+                <div class="relatorio-card" onclick="gerarRelatorioPendencias()">
+                    <span class="material-icons-round relatorio-icon">pending_actions</span>
+                    <h3>Relatório de Pendências</h3>
+                    <p>Lista de avaliações pendentes no mês.</p>
+                    <span class="btn-gerar">Gerar PDF</span>
+                </div>
+                <div class="relatorio-card" onclick="gerarRelatorioPorOperador()">
+                    <span class="material-icons-round relatorio-icon">person_search</span>
+                    <h3>Relatório por Operador</h3>
+                    <p>Detalhamento individual de cada operador.</p>
+                    <span class="btn-gerar">Gerar PDF</span>
+                </div>
+                <div class="relatorio-card" onclick="gerarRelatorioPorTurno()">
+                    <span class="material-icons-round relatorio-icon">schedule</span>
+                    <h3>Relatório por Turno</h3>
+                    <p>Avaliações agrupadas por turno.</p>
+                    <span class="btn-gerar">Gerar PDF</span>
+                </div>
+                <div class="relatorio-card" onclick="gerarRelatorioFechamento()">
+                    <span class="material-icons-round relatorio-icon">lock_clock</span>
+                    <h3>Fechamento do Mês</h3>
+                    <p>Consolidação final do mês atual.</p>
+                    <span class="btn-gerar">Gerar PDF</span>
+                </div>
+                <div class="relatorio-card" onclick="gerarRelatorioHistorico()">
+                    <span class="material-icons-round relatorio-icon">history</span>
+                    <h3>Histórico de Meses</h3>
+                    <p>Dados consolidados de meses anteriores.</p>
+                    <span class="btn-gerar">Gerar PDF</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: CONFIGURAÇÕES -->
+        <section id="tab-configuracoes" class="tab-content">
+            <div class="tab-header">
+                <h2>Configurações</h2>
+                <p class="tab-subtitle">Gerenciamento do sistema</p>
+            </div>
+            <div class="config-content">
+                <div class="config-section">
+                    <h3><span class="material-icons-round">restart_alt</span> Reset do Mês Atual</h3>
+                    <p>Apaga todas as avaliações do mês atual e salva no histórico antes de resetar.</p>
+                    <button class="btn-danger" onclick="resetMesAtual()">Resetar Mês</button>
+                </div>
+                <div class="config-section">
+                    <h3><span class="material-icons-round">history</span> Histórico de Meses Anteriores</h3>
+                    <div id="historicoContainer"></div>
+                </div>
+                <div class="config-section">
+                    <h3><span class="material-icons-round">delete_forever</span> Limpar Todos os Dados</h3>
+                    <p>Remove todas as avaliações, histórico e configurações do localStorage.</p>
+                    <button class="btn-danger" onclick="limparTodosDados()">Limpar Tudo</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
 <script src="script.js"></script>
+</body>
+</html>
