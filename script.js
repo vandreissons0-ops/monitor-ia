@@ -93,6 +93,13 @@ const semanas = [
   "Semana 4"
 ];
 
+const semanas = [
+  { nome: "Semana 1", data: "2026-05-01" },
+  { nome: "Semana 2", data: "2026-05-08" },
+  { nome: "Semana 3", data: "2026-05-15" },
+  { nome: "Semana 4", data: "2026-05-22" }
+];
+
 let avaliacoes = [];
 
 operadores.forEach((op, index) => {
@@ -102,12 +109,20 @@ operadores.forEach((op, index) => {
       operador: op.nome,
       turno: op.turno,
       carteira: op.carteira,
-      semana: semana,
+      semana: semana.nome,
+      data: semana.data,
+      notaIA: 0,
+      notaHumana: 0,
       notaFinal: 0,
       status: "Pendente",
-      pontoAtencao: "-"
+      pontoAtencao: "-",
+      criteriosNotas: criterios.map(c => ({
+        criterio: c,
+        nota: 0
+      }))
     });
   });
+});
 
 });
 // ==========================================
