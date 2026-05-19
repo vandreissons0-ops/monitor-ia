@@ -184,44 +184,59 @@
     </section>
 
     <!-- ===== RELATÓRIOS ===== -->
-    <section id="page-relatorios" class="page">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-file-export"></i> Relatórios</h1>
-            <span class="page-subtitle">Geração e exportação de relatórios</span>
+<section id="page-relatorios" class="page">
+    <div class="page-header">
+        <h1><i class="fa-solid fa-file-pdf"></i> Relatórios em PDF</h1>
+        <span class="page-subtitle">Geração dos relatórios mensais da monitoria</span>
+    </div>
+
+    <div class="relatorios-grid">
+        <div class="report-card">
+            <div class="report-icon"><i class="fa-solid fa-file-pdf"></i></div>
+            <h3>Relatório Mensal Geral</h3>
+            <p>Resumo completo do mês.</p>
+            <button class="btn btn-green" onclick="gerarRelatorioMensalPDF()">
+                <i class="fa-solid fa-download"></i> Gerar PDF
+            </button>
         </div>
-        <div class="relatorios-grid">
-            <div class="report-card">
-                <div class="report-icon"><i class="fa-solid fa-file-pdf"></i></div>
-                <h3>Exportar PDF</h3>
-                <p>Gera relatório completo em formato PDF</p>
-                <button class="btn btn-green" onclick="alert('Exportando PDF...')"><i class="fa-solid fa-download"></i> Exportar</button>
-            </div>
-            <div class="report-card">
-                <div class="report-icon green"><i class="fa-solid fa-file-excel"></i></div>
-                <h3>Exportar Excel</h3>
-                <p>Planilha com todos os dados de avaliações</p>
-                <button class="btn btn-green" onclick="alert('Exportando Excel...')"><i class="fa-solid fa-download"></i> Exportar</button>
-            </div>
-            <div class="report-card">
-                <div class="report-icon blue"><i class="fa-solid fa-calendar-days"></i></div>
-                <h3>Relatório Mensal</h3>
-                <p>Consolidado mensal de performance</p>
-                <button class="btn btn-navy" onclick="alert('Gerando relatório mensal...')"><i class="fa-solid fa-eye"></i> Visualizar</button>
-            </div>
-            <div class="report-card">
-                <div class="report-icon purple"><i class="fa-solid fa-user-chart"></i></div>
-                <h3>Por Operador</h3>
-                <p>Relatório individual por operador</p>
-                <button class="btn btn-navy" onclick="alert('Gerando relatório por operador...')"><i class="fa-solid fa-eye"></i> Visualizar</button>
-            </div>
-            <div class="report-card">
-                <div class="report-icon orange"><i class="fa-solid fa-wallet"></i></div>
-                <h3>Por Carteira</h3>
-                <p>Relatório agrupado por carteira</p>
-                <button class="btn btn-navy" onclick="alert('Gerando relatório por carteira...')"><i class="fa-solid fa-eye"></i> Visualizar</button>
-            </div>
+
+        <div class="report-card">
+            <div class="report-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3>Relatório de Pendências</h3>
+            <p>Operadores e semanas pendentes.</p>
+            <button class="btn btn-navy" onclick="gerarRelatorioPendenciasPDF()">
+                <i class="fa-solid fa-download"></i> Gerar PDF
+            </button>
         </div>
-    </section>
+
+        <div class="report-card">
+            <div class="report-icon blue"><i class="fa-solid fa-users"></i></div>
+            <h3>Relatório por Operador</h3>
+            <p>Fechamento individual de cada operador.</p>
+            <button class="btn btn-navy" onclick="gerarRelatorioOperadoresPDF()">
+                <i class="fa-solid fa-download"></i> Gerar PDF
+            </button>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon purple"><i class="fa-solid fa-clock"></i></div>
+            <h3>Relatório por Turno</h3>
+            <p>Resumo matutino e vespertino.</p>
+            <button class="btn btn-navy" onclick="gerarRelatorioTurnosPDF()">
+                <i class="fa-solid fa-download"></i> Gerar PDF
+            </button>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon green"><i class="fa-solid fa-calendar-check"></i></div>
+            <h3>Fechamento do Mês</h3>
+            <p>Relatório final para supervisor.</p>
+            <button class="btn btn-green" onclick="gerarRelatorioFechamentoPDF()">
+                <i class="fa-solid fa-download"></i> Gerar PDF
+            </button>
+        </div>
+    </div>
+</section>
 
     <!-- ===== CONFIGURAÇÕES ===== -->
     <section id="page-configuracoes" class="page">
@@ -303,6 +318,5 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="script.js"></script>
-</body>
-</html>

@@ -735,3 +735,142 @@ function initPage(page) {
 }
 
 renderVisaoGeral();
+function criarPDF(titulo) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(titulo, 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 28);
+    return doc;
+}
+
+function addLinhaPDF(doc, texto, y) {
+    doc.text(texto, 14, y);
+    return y + 7;
+}
+
+function verificarPagina(doc, y) {
+    if (y > 280) {
+        doc.addPage();
+        return 20;
+    }
+    return y;
+}
+
+function gerarRelatorioMensalPDF() {
+    const doc = criarPDF('Monitor.IA - Relatório Mensal Geral');
+
+    const total = avaliacoes.length;
+    const realizadas = avaliacoes.filter(a => a.status !== 'Pendente').length;
+    const pendentes = total - realizadas;
+    const percentual = total ? Math.round((realizadas / total) * 100) : 0;
+
+    let y = 40;
+    y = addLinhaPDF(doc, `Total planejado: ${total}`, y);
+    y = addLinhaPDF(doc, `Avaliações realizadas: ${realizadas}`, y);
+    y = addLinhaPDF(doc, `Avaliações pendentes: ${pendentes}`, y);
+    y = addLinhaPDF(doc, `Percentual concluído: ${percentual}%`, y);
+
+    y += 8;
+    operadores.forEach(op => {
+        const avOp = avaliacoes.filter(a => a.operador === op.nome);
+        const feitas = avOp.filter(a => a.status !== 'Pendente').length;
+        y = verificarPagina(doc, y);
+        y = addLinhaPDF(doc, `${op.nome} | ${op.turno} | ${feitas}/4 avaliações`, y);
+    });
+
+    doc.save('relatorio-mensal-geral.pdf');
+}
+
+function gerarRelatorioPendenciasPDF() {
+    const doc = criarPDF('Monitor.IA - Relatório de Pendências');
+    let y = 40;
+
+    operadores.forEach(op => {
+        const pendentes = avaliacoes.filter(a => a.operador === op.nome && a.status === 'Pendente');
+
+        if (pendentes.length > 0) {
+            y = verificarPagina(doc, y);
+            y = addLinhaPDF(doc, `${op.nome} | ${op.turno}`, y);
+
+            pendentes.forEach(p => {
+                y = verificarPagina(doc, y);
+                y = addLinhaPDF(doc, `- ${p.semana}: Pendente`, y);
+            });
+
+            y += 4;
+        }
+    });
+
+    doc.save('relatorio-pendencias.pdf');
+}
+
+function gerarRelatorioOperadoresPDF() {
+    const doc = criarPDF('Monitor.IA - Relatório por Operador');
+    let y = 40;
+
+    operadores.forEach(op => {
+        const avOp = avaliacoes.filter(a => a.operador === op.nome);
+        const feitas = avOp.filter(a => a.status !== 'Pendente').length;
+        const pendentes = avOp.filter(a => a.status === 'Pendente').length;
+
+        y = verificarPagina(doc, y);
+        y = addLinhaPDF(doc, `${op.nome}`, y);
+        y = addLinhaPDF(doc, `Turno: ${op.turno} | Carteira: ${op.carteira}`, y);
+        y = addLinhaPDF(doc, `Realizadas: ${feitas}/4 | Pendentes: ${pendentes}`, y);
+        y += 5;
+    });
+
+    doc.save('relatorio-por-operador.pdf');
+}
+
+function gerarRelatorioTurnosPDF() {
+    const doc = criarPDF('Monitor.IA - Relatório por Turno');
+    let y = 40;
+
+    ['Matutino', 'Vespertino'].forEach(turno => {
+        const lista = avaliacoes.filter(a => a.turno === turno);
+        const realizadas = lista.filter(a => a.status !== 'Pendente').length;
+        const pendentes = lista.length - realizadas;
+
+        y = verificarPagina(doc, y);
+        y = addLinhaPDF(doc, `Turno: ${turno}`, y);
+        y = addLinhaPDF(doc, `Planejadas: ${lista.length}`, y);
+        y = addLinhaPDF(doc, `Realizadas: ${realizadas}`, y);
+        y = addLinhaPDF(doc, `Pendentes: ${pendentes}`, y);
+        y += 8;
+    });
+
+    doc.save('relatorio-por-turno.pdf');
+}
+
+function gerarRelatorioFechamentoPDF() {
+    const doc = criarPDF('Monitor.IA - Fechamento Mensal da Monitoria');
+    let y = 40;
+
+    const total = avaliacoes.length;
+    const realizadas = avaliacoes.filter(a => a.status !== 'Pendente').length;
+    const pendentes = total - realizadas;
+    const percentual = total ? Math.round((realizadas / total) * 100) : 0;
+
+    y = addLinhaPDF(doc, `Resumo do fechamento mensal`, y);
+    y += 5;
+    y = addLinhaPDF(doc, `Total planejado: ${total}`, y);
+    y = addLinhaPDF(doc, `Total realizado: ${realizadas}`, y);
+    y = addLinhaPDF(doc, `Total pendente: ${pendentes}`, y);
+    y = addLinhaPDF(doc, `Conclusão mensal: ${percentual}%`, y);
+
+    y += 10;
+    y = addLinhaPDF(doc, 'Status por operador:', y);
+
+    operadores.forEach(op => {
+        const feitas = avaliacoes.filter(a => a.operador === op.nome && a.status !== 'Pendente').length;
+        const status = feitas === 4 ? 'Completo' : 'Pendente';
+
+        y = verificarPagina(doc, y);
+        y = addLinhaPDF(doc, `${op.nome} | ${op.turno} | ${feitas}/4 | ${status}`, y);
+    });
+
+    doc.save('fechamento-mensal-monitoria.pdf');
+}
