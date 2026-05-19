@@ -1,1232 +1,956 @@
 /* ============================================
-   Monitor.IA — Atual Assessoria
-   Complete Script (HTML/CSS/JS Puro)
+   Monitor.IA — Atual Assessoria — Script v2
    ============================================ */
 
-// ==================== CONSTANTS ====================
-var OPERADORES = [
-    "DÉBORA FERREIRA GOMES",
-    "EDUARDA REZENDES",
-    "EDVANE BERNARDO DA SILVA",
-    "LAIS MESSIAS DE OLIVEIRA",
-    "MARIA EDUARDA DE LIMA MARA",
-    "MARIA EDUARDA PRATES FERREIRA",
-    "MIKAELI LIMA DE MATOS",
-    "NATHALIA PIMENTEL DE MELO MENDES",
-    "RYAN KARLLOS SOUZA RODRIGUES",
-    "HAMYEL DA SILVA EUSTAQUIO",
-    "LARISSA AKEME ARAKAKI DA SILVA",
-    "ALESSANDRA GONZALEZ BARBOSA",
-    "FABRÍCIO MARQUES PEREIRA DA SILVA",
-    "FRANCIELLY ARCE DE OLIVEIRA",
-    "ÍTALA CRISTINA FRETES ROA",
-    "JULIA ALMEIDA COLMAN",
-    "SINDEL SOARES AMARILHA",
-    "MARIA EDUARDA SANTOS GUIMARÃES",
-    "ISABELLE EMILY DOS SANTOS SILVA",
-    "MARIA EDUARDA AMORIM DE OLIVEIRA",
-    "MARIA EDUARDA DIAS DE OLIVEIRA",
-    "YASMIN ARAUJO DA SILVA",
-    "JHULIA SEVERINO",
-    "MILLENA MORAIS",
-    "LANA LUCIA GUILHERME",
-    "LETICIA FREIRE BRANDÃO COELHO",
-    "NATHALIA LEITE RAMOS",
-    "LAÍSSA NUNES",
-    "MARIA CLARA DE JESUS VIEIRA",
-    "EMILY MARQUES FERREIRA",
-    "JULIA DINIZ FERREIRA DOS ANJOS",
-    "GABRIELLY MARTINS RODRIGUES"
+// ======= LOGO BASE64 =======
+var LOGO_B64 = "data:image/png;base64,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";
+
+// ======= DEFAULT OPERADORES =======
+var DEFAULT_OPERADORES = [
+    { nome: "DÉBORA FERREIRA GOMES", turno: "Manhã" },
+    { nome: "EDUARDA REZENDES", turno: "Manhã" },
+    { nome: "EDVANE BERNARDO DA SILVA", turno: "Manhã" },
+    { nome: "LAIS MESSIAS DE OLIVEIRA", turno: "Manhã" },
+    { nome: "MARIA EDUARDA DE LIMA MARA", turno: "Manhã" },
+    { nome: "MARIA EDUARDA PRATES FERREIRA", turno: "Manhã" },
+    { nome: "MIKAELI LIMA DE MATOS", turno: "Manhã" },
+    { nome: "NATHALIA PIMENTEL DE MELO MENDES", turno: "Manhã" },
+    { nome: "RYAN KARLLOS SOUZA RODRIGUES", turno: "Manhã" },
+    { nome: "HAMYEL DA SILVA EUSTAQUIO", turno: "Manhã" },
+    { nome: "LARISSA AKEME ARAKAKI DA SILVA", turno: "Manhã" },
+    { nome: "ALESSANDRA GONZALEZ BARBOSA", turno: "Manhã" },
+    { nome: "FABRÍCIO MARQUES PEREIRA DA SILVA", turno: "Manhã" },
+    { nome: "FRANCIELLY ARCE DE OLIVEIRA", turno: "Manhã" },
+    { nome: "ÍTALA CRISTINA FRETES ROA", turno: "Manhã" },
+    { nome: "JULIA ALMEIDA COLMAN", turno: "Manhã" },
+    { nome: "SINDEL SOARES AMARILHA", turno: "Tarde" },
+    { nome: "MARIA EDUARDA SANTOS GUIMARÃES", turno: "Tarde" },
+    { nome: "ISABELLE EMILY DOS SANTOS SILVA", turno: "Tarde" },
+    { nome: "MARIA EDUARDA AMORIM DE OLIVEIRA", turno: "Tarde" },
+    { nome: "MARIA EDUARDA DIAS DE OLIVEIRA", turno: "Tarde" },
+    { nome: "YASMIN ARAUJO DA SILVA", turno: "Tarde" },
+    { nome: "JHULIA SEVERINO", turno: "Tarde" },
+    { nome: "MILLENA MORAIS", turno: "Tarde" },
+    { nome: "LANA LUCIA GUILHERME", turno: "Tarde" },
+    { nome: "LETICIA FREIRE BRANDÃO COELHO", turno: "Tarde" },
+    { nome: "NATHALIA LEITE RAMOS", turno: "Tarde" },
+    { nome: "LAÍSSA NUNES", turno: "Tarde" },
+    { nome: "MARIA CLARA DE JESUS VIEIRA", turno: "Tarde" },
+    { nome: "EMILY MARQUES FERREIRA", turno: "Tarde" },
+    { nome: "JULIA DINIZ FERREIRA DOS ANJOS", turno: "Tarde" },
+    { nome: "GABRIELLY MARTINS RODRIGUES", turno: "Tarde" }
 ];
 
-var TURNOS = {};
-OPERADORES.forEach(function(op, i) {
-    TURNOS[op] = i < 16 ? "Manhã" : "Tarde";
-});
+// ======= STORAGE KEYS =======
+var SK_USERS = "monitorIA_users";
+var SK_OPERADORES = "monitorIA_operadores";
+var SK_AVALIACOES = "monitorIA_avaliacoes";
+var SK_HISTORICO = "monitorIA_historico";
+var SK_SESSION = "monitorIA_session";
 
-var TOTAL_OPERADORES = OPERADORES.length; // 32
-var AVALIACOES_POR_MES = TOTAL_OPERADORES * 4; // 128
-var OPERADORES_POR_DIA = 7;
+// ======= STATE =======
+var currentUser = null;
+var clockInterval = null;
+var chartInstances = {};
 
-var STORAGE_KEYS = {
-    session: "monitorIA_session",
-    avaliacoes: "monitorIA_avaliacoes",
-    historico: "monitorIA_historico",
-    mesAtual: "monitorIA_mesAtual"
-};
+// ======= UTIL =======
+function qs(sel) { return document.querySelector(sel); }
+function qsa(sel) { return document.querySelectorAll(sel); }
+function ge(id) { return document.getElementById(id); }
 
-// ==================== UTILITY FUNCTIONS ====================
+// ======= USERS =======
+function loadUsers() {
+    var raw = localStorage.getItem(SK_USERS);
+    if (raw) {
+        try { return JSON.parse(raw); } catch (e) { }
+    }
+    var defaults = [{ username: "admin", password: "admin123", role: "admin" }];
+    localStorage.setItem(SK_USERS, JSON.stringify(defaults));
+    return defaults;
+}
+function saveUsers(users) { localStorage.setItem(SK_USERS, JSON.stringify(users)); }
 
-function getMesAno(date) {
-    var d = date || new Date();
+// ======= OPERADORES =======
+function loadOperadores() {
+    var raw = localStorage.getItem(SK_OPERADORES);
+    if (raw) {
+        try { return JSON.parse(raw); } catch (e) { }
+    }
+    localStorage.setItem(SK_OPERADORES, JSON.stringify(DEFAULT_OPERADORES));
+    return JSON.parse(JSON.stringify(DEFAULT_OPERADORES));
+}
+function saveOperadores(ops) { localStorage.setItem(SK_OPERADORES, JSON.stringify(ops)); }
+
+// ======= AVALIACOES =======
+function getMonthKey() {
+    var d = new Date();
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
 }
+function loadAvaliacoes() {
+    var raw = localStorage.getItem(SK_AVALIACOES);
+    if (raw) { try { return JSON.parse(raw); } catch (e) { } }
+    return {};
+}
+function saveAvaliacoes(data) { localStorage.setItem(SK_AVALIACOES, JSON.stringify(data)); }
 
-function getMesAnoLabel(mesAno) {
-    var parts = mesAno.split("-");
-    var ano = parts[0];
-    var mes = parts[1];
-    var meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-    return meses[parseInt(mes) - 1] + " " + ano;
+function getMonthData() {
+    var all = loadAvaliacoes();
+    var mk = getMonthKey();
+    if (!all[mk]) { all[mk] = {}; saveAvaliacoes(all); }
+    return all[mk];
+}
+function setMonthData(data) {
+    var all = loadAvaliacoes();
+    all[getMonthKey()] = data;
+    saveAvaliacoes(all);
 }
 
-function getDataFormatada(date) {
-    var d = date || new Date();
-    var dias = ["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
-    var dia = dias[d.getDay()];
-    return dia + ", " + d.toLocaleDateString("pt-BR");
+// ======= HISTORICO =======
+function loadHistorico() {
+    var raw = localStorage.getItem(SK_HISTORICO);
+    if (raw) { try { return JSON.parse(raw); } catch (e) { } }
+    return {};
 }
+function saveHistorico(h) { localStorage.setItem(SK_HISTORICO, JSON.stringify(h)); }
 
-function getHoraFormatada() {
-    return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-}
-
-function isBusinessDay(date) {
-    var day = date.getDay();
-    return day !== 0 && day !== 6;
-}
-
+// ======= SCHEDULE =======
 function getBusinessDaysInMonth(year, month) {
     var days = [];
-    var lastDay = new Date(year, month + 1, 0).getDate();
-    for (var d = 1; d <= lastDay; d++) {
-        var date = new Date(year, month, d);
-        if (isBusinessDay(date)) {
-            days.push(new Date(year, month, d));
-        }
+    var d = new Date(year, month, 1);
+    while (d.getMonth() === month) {
+        var dow = d.getDay();
+        if (dow !== 0 && dow !== 6) days.push(new Date(d));
+        d.setDate(d.getDate() + 1);
     }
     return days;
 }
 
-function getISOWeek(date) {
-    var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    var dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-}
-
-function getWeekNumber(date, businessDays) {
-    var dateStr = date.toISOString().slice(0, 10);
-    var weekNum = 0;
-    var lastISOWeek = -1;
-    for (var i = 0; i < businessDays.length; i++) {
-        var bd = businessDays[i];
-        var isoWeek = getISOWeek(bd);
-        if (isoWeek !== lastISOWeek) {
-            weekNum++;
-            lastISOWeek = isoWeek;
-        }
-        if (bd.toISOString().slice(0, 10) === dateStr) {
-            return weekNum;
-        }
-    }
-    return 1;
-}
-
-// ==================== SCHEDULE ====================
-// Every week, all 32 operators are distributed:
-// Mon-Thu: 7 each (28), Fri: remaining 4
-// If a week has fewer than 5 business days, the last day absorbs the rest.
-// Each week uses the same 32 operators, ensuring 1 eval/operator/week = 4/month.
-
-function getScheduleForMonth(year, month) {
-    var businessDays = getBusinessDaysInMonth(year, month);
+function getScheduleForMonth() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth();
+    var bDays = getBusinessDaysInMonth(year, month);
+    var ops = loadOperadores();
+    var totalOps = ops.length;
+    var opsPerDay = 7;
     var schedule = {};
-    var weeks = {};
 
-    // Group business days by ISO week
-    businessDays.forEach(function(bd) {
-        var isoW = getISOWeek(bd);
-        if (!weeks[isoW]) weeks[isoW] = [];
-        weeks[isoW].push(bd);
-    });
-
-    var weekKeys = Object.keys(weeks).sort(function(a, b) { return a - b; });
-
-    weekKeys.forEach(function(wk) {
-        var daysInWeek = weeks[wk];
-
-        // Distribute all 32 operators across the days of this week
-        var opIndex = 0;
-        daysInWeek.forEach(function(day, dayIdx) {
-            var dateStr = day.toISOString().slice(0, 10);
-            var opsForDay = [];
-            var count;
-            if (dayIdx < daysInWeek.length - 1) {
-                count = OPERADORES_POR_DIA; // 7
-            } else {
-                count = TOTAL_OPERADORES - opIndex; // Last day gets remaining
-            }
-            for (var i = 0; i < count && opIndex < TOTAL_OPERADORES; i++) {
-                opsForDay.push(OPERADORES[opIndex]);
-                opIndex++;
-            }
-            schedule[dateStr] = opsForDay;
-        });
-    });
-
+    for (var d = 0; d < bDays.length; d++) {
+        var dateKey = bDays[d].toISOString().split("T")[0];
+        var dayOps = [];
+        for (var s = 0; s < opsPerDay; s++) {
+            var idx = (d * opsPerDay + s) % totalOps;
+            dayOps.push(ops[idx].nome);
+        }
+        schedule[dateKey] = dayOps;
+    }
     return schedule;
 }
 
 function getTodaySchedule() {
-    var today = new Date();
-    var year = today.getFullYear();
-    var month = today.getMonth();
-    var schedule = getScheduleForMonth(year, month);
-    var todayStr = today.toISOString().slice(0, 10);
-
-    if (schedule[todayStr]) {
-        return { date: todayStr, operators: schedule[todayStr] };
-    }
-    return { date: todayStr, operators: [] };
+    var sched = getScheduleForMonth();
+    var today = new Date().toISOString().split("T")[0];
+    return sched[today] || [];
 }
 
-// ==================== STORAGE ====================
-
-function loadAvaliacoes() {
-    try {
-        var data = localStorage.getItem(STORAGE_KEYS.avaliacoes);
-        return data ? JSON.parse(data) : {};
-    } catch (e) {
-        return {};
-    }
+function getWeekNumber(date) {
+    var d = new Date(date);
+    var first = new Date(d.getFullYear(), d.getMonth(), 1);
+    return Math.ceil((d.getDate() + first.getDay()) / 7);
 }
 
-function saveAvaliacoes(avaliacoes) {
-    localStorage.setItem(STORAGE_KEYS.avaliacoes, JSON.stringify(avaliacoes));
-}
-
-function loadHistorico() {
-    try {
-        var data = localStorage.getItem(STORAGE_KEYS.historico);
-        return data ? JSON.parse(data) : [];
-    } catch (e) {
-        return [];
-    }
-}
-
-function saveHistorico(historico) {
-    localStorage.setItem(STORAGE_KEYS.historico, JSON.stringify(historico));
-}
-
-function checkMonthReset() {
-    var currentMes = getMesAno();
-    var savedMes = localStorage.getItem(STORAGE_KEYS.mesAtual);
-
-    if (savedMes && savedMes !== currentMes) {
-        // Archive previous month
-        var avaliacoes = loadAvaliacoes();
-        var historico = loadHistorico();
-
-        var totalRealizadas = 0;
-        var totalPendentes = 0;
-        OPERADORES.forEach(function(op) {
-            var opAvals = avaliacoes[op] || [];
-            var realizadas = opAvals.filter(function(a) { return a.nota > 0; }).length;
-            totalRealizadas += realizadas;
-            totalPendentes += (4 - realizadas);
-        });
-
-        historico.push({
-            mesAno: savedMes,
-            label: getMesAnoLabel(savedMes),
-            planejado: AVALIACOES_POR_MES,
-            realizado: totalRealizadas,
-            pendente: totalPendentes,
-            percentual: AVALIACOES_POR_MES > 0 ? Math.round((totalRealizadas / AVALIACOES_POR_MES) * 100) : 0
-        });
-
-        saveHistorico(historico);
-        saveAvaliacoes({});
-    }
-
-    localStorage.setItem(STORAGE_KEYS.mesAtual, currentMes);
-}
-
-function getAvaliacoesStats() {
-    var avaliacoes = loadAvaliacoes();
-    var totalRealizadas = 0;
-    var totalPendentes = 0;
-    var somaNotas = 0;
-    var countNotas = 0;
-    var completos = 0;
-
-    OPERADORES.forEach(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        var realizadas = opAvals.filter(function(a) { return a.nota > 0; }).length;
-        totalRealizadas += realizadas;
-        totalPendentes += (4 - realizadas);
-
-        opAvals.forEach(function(a) {
-            if (a.nota > 0) {
-                somaNotas += a.nota;
-                countNotas++;
-            }
-        });
-
-        if (realizadas >= 4) completos++;
-    });
-
-    return {
-        planejado: AVALIACOES_POR_MES,
-        realizado: totalRealizadas,
-        pendente: totalPendentes,
-        media: countNotas > 0 ? (somaNotas / countNotas).toFixed(1) : "0.0",
-        completos: completos,
-        operadoresPendentes: TOTAL_OPERADORES - completos,
-        percentual: AVALIACOES_POR_MES > 0 ? Math.round((totalRealizadas / AVALIACOES_POR_MES) * 100) : 0
-    };
-}
-
-function getWeeklyStats() {
-    var today = new Date();
-    var year = today.getFullYear();
-    var month = today.getMonth();
-    var businessDays = getBusinessDaysInMonth(year, month);
-    var schedule = getScheduleForMonth(year, month);
-    var avaliacoes = loadAvaliacoes();
-
-    var weeks = {};
-    businessDays.forEach(function(bd) {
-        var wk = getWeekNumber(bd, businessDays);
-        if (!weeks[wk]) weeks[wk] = { dates: [], total: 0, done: 0 };
-        var dateStr = bd.toISOString().slice(0, 10);
-        weeks[wk].dates.push(dateStr);
-        var ops = schedule[dateStr] || [];
-        weeks[wk].total += ops.length;
-        ops.forEach(function(op) {
-            var opAvals = avaliacoes[op] || [];
-            var avalForWeek = opAvals.find(function(a) { return a.semana === wk; });
-            if (avalForWeek && avalForWeek.nota > 0) {
-                weeks[wk].done++;
-            }
-        });
-    });
-
-    return weeks;
-}
-
-// ==================== LOGIN ====================
-
+// ======= LOGIN =======
 function doLogin() {
-    var user = document.getElementById("loginUser").value.trim();
-    var pass = document.getElementById("loginPass").value;
-    var errorEl = document.getElementById("loginError");
-
-    if (user === "admin" && pass === "admin123") {
-        localStorage.setItem(STORAGE_KEYS.session, "true");
-        errorEl.style.display = "none";
-        showApp();
-    } else {
-        errorEl.style.display = "block";
+    var username = ge("loginUser").value.trim().toLowerCase();
+    var password = ge("loginPass").value;
+    var users = loadUsers();
+    var found = null;
+    for (var i = 0; i < users.length; i++) {
+        if (users[i].username.toLowerCase() === username && users[i].password === password) {
+            found = users[i]; break;
+        }
     }
+    if (!found) {
+        ge("loginError").style.display = "block";
+        return;
+    }
+    ge("loginError").style.display = "none";
+    currentUser = found;
+    localStorage.setItem(SK_SESSION, JSON.stringify({ username: found.username, role: found.role }));
+    showApp();
 }
-
 function doLogout() {
-    localStorage.removeItem(STORAGE_KEYS.session);
-    document.getElementById("appContainer").style.display = "none";
-    document.getElementById("loginScreen").style.display = "flex";
-    document.getElementById("loginUser").value = "";
-    document.getElementById("loginPass").value = "";
+    localStorage.removeItem(SK_SESSION);
+    currentUser = null;
+    ge("appContainer").style.display = "none";
+    ge("loginScreen").style.display = "flex";
+    ge("loginUser").value = "";
+    ge("loginPass").value = "";
+    if (clockInterval) clearInterval(clockInterval);
 }
-
 function checkSession() {
-    if (localStorage.getItem(STORAGE_KEYS.session) === "true") {
-        showApp();
-    }
+    var raw = localStorage.getItem(SK_SESSION);
+    if (!raw) return false;
+    try {
+        var s = JSON.parse(raw);
+        var users = loadUsers();
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].username === s.username) { currentUser = users[i]; return true; }
+        }
+    } catch (e) { }
+    return false;
 }
 
+// ======= APP INIT =======
 function showApp() {
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("appContainer").style.display = "flex";
-    initApp();
+    ge("loginScreen").style.display = "none";
+    ge("appContainer").style.display = "flex";
+    ge("headerUserName").textContent = currentUser.username;
+
+    // Set logo
+    ge("loginLogoImg").src = LOGO_B64;
+    ge("sidebarLogoImg").src = LOGO_B64;
+
+    startClock();
+    switchTab("visaoGeral");
 }
 
-// ==================== NAVIGATION ====================
+function startClock() {
+    if (clockInterval) clearInterval(clockInterval);
+    function tick() {
+        var now = new Date();
+        var opts = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+        ge("headerDate").textContent = now.toLocaleDateString("pt-BR", opts);
+        ge("headerClock").textContent = now.toLocaleTimeString("pt-BR");
+        var el = ge("visaoGeralDatetime");
+        if (el) el.textContent = now.toLocaleDateString("pt-BR", opts) + " — " + now.toLocaleTimeString("pt-BR");
+    }
+    tick();
+    clockInterval = setInterval(tick, 1000);
+}
 
-function switchTab(tabName) {
-    document.querySelectorAll(".tab-content").forEach(function(t) { t.classList.remove("active"); });
-    document.querySelectorAll(".nav-btn").forEach(function(b) { b.classList.remove("active"); });
-
-    var tabEl = document.getElementById("tab-" + tabName);
-    if (tabEl) tabEl.classList.add("active");
-
-    var btn = document.querySelector('.nav-btn[data-tab="' + tabName + '"]');
+// ======= TABS =======
+function switchTab(tab) {
+    qsa(".tab-content").forEach(function (el) { el.classList.remove("active"); });
+    qsa(".nav-btn").forEach(function (el) { el.classList.remove("active"); });
+    var section = ge("tab-" + tab);
+    if (section) section.classList.add("active");
+    var btn = qs('.nav-btn[data-tab="' + tab + '"]');
     if (btn) btn.classList.add("active");
 
-    // Close sidebar on mobile
-    if (window.innerWidth <= 768) {
-        document.getElementById("sidebar").classList.remove("open");
-    }
-
-    // Render tab content
-    switch (tabName) {
-        case "visaoGeral": renderVisaoGeral(); break;
-        case "avaliacoes": renderAvaliacoes(); break;
-        case "evolucao": renderEvolucao(); break;
-        case "operadores": renderOperadores(); break;
-        case "calibragem": renderCalibragem(); break;
-        case "relatorios": break; // static HTML
-        case "configuracoes": renderConfiguracoes(); break;
-    }
+    if (tab === "visaoGeral") renderVisaoGeral();
+    else if (tab === "avaliacoes") renderAvaliacoes();
+    else if (tab === "evolucao") renderEvolucao();
+    else if (tab === "operadores") renderOperadores();
+    else if (tab === "calibragem") renderCalibragem();
+    else if (tab === "configuracoes") renderConfiguracoes();
 }
+function toggleSidebar() { ge("sidebar").classList.toggle("open"); }
 
-function toggleSidebar() {
-    var sb = document.getElementById("sidebar");
-    sb.classList.toggle("open");
+// ======= MODAL =======
+function abrirModal(title, bodyHTML) {
+    ge("modalTitle").textContent = title;
+    ge("modalBody").innerHTML = bodyHTML;
+    ge("modalOverlay").style.display = "flex";
 }
+function fecharModal() { ge("modalOverlay").style.display = "none"; }
 
-// ==================== CLOCK ====================
-
-var clockInterval = null;
-
-function updateClock() {
-    var dateEl = document.getElementById("headerDate");
-    var clockEl = document.getElementById("headerClock");
-    var visaoEl = document.getElementById("visaoGeralDatetime");
-
-    var now = new Date();
-    var dateStr = getDataFormatada(now);
-    var timeStr = getHoraFormatada();
-
-    if (dateEl) dateEl.textContent = dateStr;
-    if (clockEl) clockEl.textContent = timeStr;
-    if (visaoEl) visaoEl.textContent = dateStr + " — " + timeStr;
-}
-
-// ==================== RENDER: VISÃO GERAL ====================
-
-var chartSemanalInstance = null;
-var chartStatusInstance = null;
-
+// ======= RENDER: VISÃO GERAL =======
 function renderVisaoGeral() {
-    var stats = getAvaliacoesStats();
-    var kpiGrid = document.getElementById("kpiGrid");
+    var ops = loadOperadores();
+    var md = getMonthData();
+    var sched = getScheduleForMonth();
+    var totalSlots = 0;
+    var totalAvaliados = 0;
+    var somaNotas = 0;
+    var countNotas = 0;
 
-    kpiGrid.innerHTML =
-        '<div class="kpi-card">' +
-            '<div class="kpi-label"><span class="material-icons-round">event_note</span> Planejadas no Mês</div>' +
-            '<div class="kpi-value accent">' + stats.planejado + '</div>' +
-        '</div>' +
-        '<div class="kpi-card">' +
-            '<div class="kpi-label"><span class="material-icons-round">check_circle</span> Realizadas</div>' +
-            '<div class="kpi-value success">' + stats.realizado + '</div>' +
-        '</div>' +
-        '<div class="kpi-card">' +
-            '<div class="kpi-label"><span class="material-icons-round">pending</span> Pendentes</div>' +
-            '<div class="kpi-value warning">' + stats.pendente + '</div>' +
-        '</div>' +
-        '<div class="kpi-card">' +
-            '<div class="kpi-label"><span class="material-icons-round">percent</span> Conclusão</div>' +
-            '<div class="kpi-value info">' + stats.percentual + '%</div>' +
-        '</div>' +
-        '<div class="kpi-card">' +
-            '<div class="kpi-label"><span class="material-icons-round">verified</span> Completos (4/4)</div>' +
-            '<div class="kpi-value success">' + stats.completos + '</div>' +
-        '</div>' +
-        '<div class="kpi-card">' +
-            '<div class="kpi-label"><span class="material-icons-round">hourglass_top</span> Op. Pendentes</div>' +
-            '<div class="kpi-value danger">' + stats.operadoresPendentes + '</div>' +
-        '</div>';
+    var allDates = Object.keys(sched);
+    for (var i = 0; i < allDates.length; i++) {
+        var dt = allDates[i];
+        var names = sched[dt];
+        totalSlots += names.length;
+        for (var j = 0; j < names.length; j++) {
+            var key = dt + "||" + names[j];
+            if (md[key] && md[key].nota !== null && md[key].nota !== undefined && md[key].nota !== "") {
+                totalAvaliados++;
+                somaNotas += parseFloat(md[key].nota);
+                countNotas++;
+            }
+        }
+    }
 
-    renderChartSemanal();
-    renderChartStatus(stats);
+    var pendentes = totalSlots - totalAvaliados;
+    var mediaMes = countNotas > 0 ? (somaNotas / countNotas).toFixed(1) : "—";
+    var pctConcluido = totalSlots > 0 ? ((totalAvaliados / totalSlots) * 100).toFixed(1) : 0;
+
+    ge("kpiGrid").innerHTML =
+        kpiCard("groups", "Total Operadores", ops.length, "accent") +
+        kpiCard("assignment_turned_in", "Avaliados", totalAvaliados, "success") +
+        kpiCard("pending_actions", "Pendentes", pendentes, "warning") +
+        kpiCard("star", "Média do Mês", mediaMes, "info") +
+        kpiCard("percent", "Conclusão", pctConcluido + "%", "accent");
+
+    renderChartSemanal(sched, md);
+    renderChartStatus(totalAvaliados, pendentes);
+}
+function kpiCard(icon, label, value, color) {
+    return '<div class="kpi-card"><div class="kpi-label"><span class="material-icons-round">' + icon +
+        '</span>' + label + '</div><div class="kpi-value ' + color + '">' + value + '</div></div>';
 }
 
-function renderChartSemanal() {
-    var weeklyStats = getWeeklyStats();
-    var labels = [];
-    var dataDone = [];
-    var dataTotal = [];
+function destroyChart(name) {
+    if (chartInstances[name]) { chartInstances[name].destroy(); chartInstances[name] = null; }
+}
 
-    Object.keys(weeklyStats).sort(function(a, b) { return a - b; }).forEach(function(wk) {
-        labels.push("Sem " + wk);
-        dataDone.push(weeklyStats[wk].done);
-        dataTotal.push(weeklyStats[wk].total);
-    });
+function renderChartSemanal(sched, md) {
+    destroyChart("semanal");
+    var weeks = {};
+    var dates = Object.keys(sched).sort();
+    for (var i = 0; i < dates.length; i++) {
+        var wk = "Sem " + getWeekNumber(new Date(dates[i] + "T12:00:00"));
+        if (!weeks[wk]) weeks[wk] = { total: 0, feito: 0 };
+        var names = sched[dates[i]];
+        weeks[wk].total += names.length;
+        for (var j = 0; j < names.length; j++) {
+            var key = dates[i] + "||" + names[j];
+            if (md[key] && md[key].nota !== null && md[key].nota !== undefined && md[key].nota !== "") weeks[wk].feito++;
+        }
+    }
+    var labels = Object.keys(weeks);
+    var data1 = labels.map(function (l) { return weeks[l].total; });
+    var data2 = labels.map(function (l) { return weeks[l].feito; });
 
-    var ctx = document.getElementById("chartSemanal");
-    if (!ctx) return;
-
-    if (chartSemanalInstance) chartSemanalInstance.destroy();
-
-    chartSemanalInstance = new Chart(ctx, {
+    var ctx = ge("chartSemanal").getContext("2d");
+    chartInstances["semanal"] = new Chart(ctx, {
         type: "bar",
         data: {
             labels: labels,
             datasets: [
-                {
-                    label: "Realizadas",
-                    data: dataDone,
-                    backgroundColor: "rgba(108, 92, 231, 0.7)",
-                    borderRadius: 6
-                },
-                {
-                    label: "Planejadas",
-                    data: dataTotal,
-                    backgroundColor: "rgba(108, 92, 231, 0.2)",
-                    borderRadius: 6
-                }
+                { label: "Programado", data: data1, backgroundColor: "rgba(108,92,231,0.3)", borderColor: "#6c5ce7", borderWidth: 1 },
+                { label: "Avaliado", data: data2, backgroundColor: "rgba(0,206,201,0.3)", borderColor: "#00cec9", borderWidth: 1 }
             ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: { labels: { color: "#8b8fa7", font: { family: "Plus Jakarta Sans" } } }
-            },
+            responsive: true, maintainAspectRatio: true,
+            plugins: { legend: { labels: { color: "#8b8fa7", font: { family: "Plus Jakarta Sans", size: 11 } } } },
             scales: {
-                x: { ticks: { color: "#5c6078" }, grid: { color: "rgba(42,45,62,0.5)" } },
-                y: { ticks: { color: "#5c6078" }, grid: { color: "rgba(42,45,62,0.5)" }, beginAtZero: true }
+                x: { ticks: { color: "#5c6078", font: { family: "Plus Jakarta Sans", size: 10 } }, grid: { color: "#2a2d3e" } },
+                y: { beginAtZero: true, ticks: { color: "#5c6078", font: { family: "Plus Jakarta Sans", size: 10 } }, grid: { color: "#2a2d3e" } }
             }
         }
     });
 }
 
-function renderChartStatus(stats) {
-    var ctx = document.getElementById("chartStatus");
-    if (!ctx) return;
-
-    if (chartStatusInstance) chartStatusInstance.destroy();
-
-    chartStatusInstance = new Chart(ctx, {
+function renderChartStatus(avaliados, pendentes) {
+    destroyChart("status");
+    var ctx = ge("chartStatus").getContext("2d");
+    chartInstances["status"] = new Chart(ctx, {
         type: "doughnut",
         data: {
-            labels: ["Realizadas", "Pendentes"],
-            datasets: [{
-                data: [stats.realizado, stats.pendente],
-                backgroundColor: ["#6c5ce7", "#2a2d3e"],
-                borderWidth: 0
-            }]
+            labels: ["Avaliados", "Pendentes"],
+            datasets: [{ data: [avaliados, pendentes], backgroundColor: ["#00cec9", "#fdcb6e"], borderWidth: 0 }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            cutout: "70%",
-            plugins: {
-                legend: { labels: { color: "#8b8fa7", font: { family: "Plus Jakarta Sans" } } }
-            }
+            responsive: true, maintainAspectRatio: true, cutout: "70%",
+            plugins: { legend: { labels: { color: "#8b8fa7", font: { family: "Plus Jakarta Sans", size: 11 } } } }
         }
     });
 }
 
-// ==================== RENDER: AVALIAÇÕES ====================
-
+// ======= RENDER: AVALIAÇÕES =======
 function renderAvaliacoes() {
-    var today = new Date();
-    var year = today.getFullYear();
-    var month = today.getMonth();
-    var todayStr = today.toISOString().slice(0, 10);
-    var businessDays = getBusinessDaysInMonth(year, month);
-    var schedule = getScheduleForMonth(year, month);
-    var avaliacoes = loadAvaliacoes();
-    var weekNum = isBusinessDay(today) ? getWeekNumber(today, businessDays) : 0;
+    var todayOps = getTodaySchedule();
+    var md = getMonthData();
+    var today = new Date().toISOString().split("T")[0];
+    var ops = loadOperadores();
 
-    var todayOps = schedule[todayStr] || [];
-
-    // Dashboard lateral
-    var dashEl = document.getElementById("avalDashboard");
-    var realizadasHoje = 0;
-    var somaNotasHoje = 0;
-    var countNotasHoje = 0;
-
-    todayOps.forEach(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        var avalHoje = opAvals.find(function(a) { return a.data === todayStr; });
-        if (avalHoje && avalHoje.nota > 0) {
-            realizadasHoje++;
-            somaNotasHoje += avalHoje.nota;
-            countNotasHoje++;
+    // Dashboard
+    var totalHoje = todayOps.length;
+    var feitoHoje = 0;
+    var somaHoje = 0;
+    for (var i = 0; i < todayOps.length; i++) {
+        var k = today + "||" + todayOps[i];
+        if (md[k] && md[k].nota !== null && md[k].nota !== undefined && md[k].nota !== "") {
+            feitoHoje++;
+            somaHoje += parseFloat(md[k].nota);
         }
-    });
+    }
+    var mediaHoje = feitoHoje > 0 ? (somaHoje / feitoHoje).toFixed(1) : "—";
 
-    var stats = getAvaliacoesStats();
-    var mediaHoje = countNotasHoje > 0 ? (somaNotasHoje / countNotasHoje).toFixed(1) : "—";
-
-    dashEl.innerHTML =
-        '<div class="aval-dash-card">' +
-            '<div class="dash-label">Programadas Hoje</div>' +
-            '<div class="dash-value" style="color:var(--accent-light)">' + todayOps.length + '</div>' +
-        '</div>' +
-        '<div class="aval-dash-card">' +
-            '<div class="dash-label">Realizadas Hoje</div>' +
-            '<div class="dash-value" style="color:var(--success)">' + realizadasHoje + '</div>' +
-        '</div>' +
-        '<div class="aval-dash-card">' +
-            '<div class="dash-label">Pendentes Hoje</div>' +
-            '<div class="dash-value" style="color:var(--warning)">' + (todayOps.length - realizadasHoje) + '</div>' +
-        '</div>' +
-        '<div class="aval-dash-card">' +
-            '<div class="dash-label">Média Notas Hoje</div>' +
-            '<div class="dash-value" style="color:var(--info)">' + mediaHoje + '</div>' +
-        '</div>' +
-        '<div class="aval-dash-card">' +
-            '<div class="dash-label">Progresso do Mês</div>' +
-            '<div class="dash-value" style="color:var(--accent-light)">' + stats.percentual + '%</div>' +
-        '</div>' +
-        '<div class="aval-dash-card">' +
-            '<div class="dash-label">Completos (4/4)</div>' +
-            '<div class="dash-value" style="color:var(--success)">' + stats.completos + '/' + TOTAL_OPERADORES + '</div>' +
-        '</div>';
+    ge("avalDashboard").innerHTML =
+        '<div class="aval-dash-card"><div class="dash-label">Programados Hoje</div><div class="dash-value" style="color:var(--accent-light)">' + totalHoje + '</div></div>' +
+        '<div class="aval-dash-card"><div class="dash-label">Avaliados Hoje</div><div class="dash-value" style="color:var(--success)">' + feitoHoje + '</div></div>' +
+        '<div class="aval-dash-card"><div class="dash-label">Pendentes Hoje</div><div class="dash-value" style="color:var(--warning)">' + (totalHoje - feitoHoje) + '</div></div>' +
+        '<div class="aval-dash-card"><div class="dash-label">Média Hoje</div><div class="dash-value" style="color:var(--info)">' + mediaHoje + '</div></div>';
 
     // Cards
-    var listEl = document.getElementById("avalList");
-
-    if (!isBusinessDay(today)) {
-        listEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px;">' +
-            '<span class="material-icons-round" style="font-size:48px;display:block;margin-bottom:12px;">weekend</span>' +
-            'Hoje não é dia útil. As avaliações são realizadas de segunda a sexta.' +
-        '</div>';
-        return;
-    }
-
     if (todayOps.length === 0) {
-        listEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px;">' +
-            'Nenhum operador programado para hoje.' +
-        '</div>';
+        ge("avalList").innerHTML = '<p style="color:var(--text-muted);padding:20px;">Nenhum operador programado para hoje (final de semana ou sem programação).</p>';
         return;
     }
 
-    var cardsHTML = "";
-    todayOps.forEach(function(op, idx) {
-        var opAvals = avaliacoes[op] || [];
-        var avalHoje = opAvals.find(function(a) { return a.data === todayStr; });
-        var nota = avalHoje ? avalHoje.nota : 0;
-        var pontoAtencao = avalHoje ? (avalHoje.pontoAtencao || "") : "";
-        var status = nota > 0 ? "Aplicado" : "Pendente";
-        var badgeClass = nota > 0 ? "badge-aplicado" : "badge-pendente";
-        var safeOp = op.replace(/'/g, "\\'");
+    var html = "";
+    for (var i = 0; i < todayOps.length; i++) {
+        var nome = todayOps[i];
+        var key = today + "||" + nome;
+        var av = md[key] || { nota: "", obs: "" };
+        var turno = "—";
+        for (var o = 0; o < ops.length; o++) { if (ops[o].nome === nome) { turno = ops[o].turno; break; } }
+        var isPendente = av.nota === null || av.nota === undefined || av.nota === "";
+        var badgeClass = isPendente ? "badge-pendente" : "badge-aplicado";
+        var badgeText = isPendente ? "Pendente" : "Nota: " + av.nota;
+        var safeNome = nome.replace(/"/g, "&quot;");
 
-        cardsHTML +=
-        '<div class="aval-card" id="avalCard_' + idx + '">' +
-            '<div class="aval-card-header">' +
-                '<div class="aval-card-name">' + op + '</div>' +
-                '<span class="aval-card-badge ' + badgeClass + '">' + status + '</span>' +
-            '</div>' +
-            '<div class="aval-card-info">' +
-                '<span><span class="material-icons-round">schedule</span>' + (TURNOS[op] || "—") + '</span>' +
-                '<span><span class="material-icons-round">date_range</span>Sem ' + weekNum + '</span>' +
-                '<span><span class="material-icons-round">today</span>' + todayStr + '</span>' +
-            '</div>' +
+        html += '<div class="aval-card">' +
+            '<div class="aval-card-header"><span class="aval-card-name">' + nome + '</span>' +
+            '<span class="aval-card-badge ' + badgeClass + '">' + badgeText + '</span></div>' +
+            '<div class="aval-card-info"><span><span class="material-icons-round">schedule</span>' + turno + '</span>' +
+            '<span><span class="material-icons-round">calendar_today</span>' + today + '</span></div>' +
             '<div class="aval-card-fields">' +
-                '<div class="field-row">' +
-                    '<label>Nota (0–100)</label>' +
-                    '<input type="number" min="0" max="100" value="' + nota + '" id="nota_' + idx + '">' +
-                '</div>' +
-                '<div class="field-row">' +
-                    '<label>Ponto de Atenção</label>' +
-                    '<textarea id="ponto_' + idx + '" placeholder="Observações...">' + pontoAtencao + '</textarea>' +
-                '</div>' +
-            '</div>' +
+            '<div class="field-row"><label>Nota (0-100)</label>' +
+            '<input type="number" min="0" max="100" id="nota_' + i + '" value="' + (av.nota || "") + '"></div>' +
+            '<div class="field-row"><label>Ponto de Atenção</label>' +
+            '<textarea id="obs_' + i + '">' + (av.obs || "") + '</textarea></div></div>' +
             '<div class="aval-card-actions">' +
-                '<button class="btn-save" onclick="salvarAvaliacao(\'' + safeOp + '\', ' + idx + ', ' + weekNum + ')">' +
-                    '<span class="material-icons-round" style="font-size:16px">save</span> Salvar' +
-                '</button>' +
-                '<button class="btn-reset" onclick="resetarAvaliacao(\'' + safeOp + '\', ' + idx + ')">' +
-                    '<span class="material-icons-round">restart_alt</span>' +
-                '</button>' +
-            '</div>' +
-        '</div>';
-    });
-
-    listEl.innerHTML = cardsHTML;
+            '<button class="btn-save" onclick="salvarAvaliacao(\'' + safeNome + '\',' + i + ')"><span class="material-icons-round" style="font-size:16px">save</span> Salvar</button>' +
+            '<button class="btn-reset" onclick="resetAvaliacao(\'' + safeNome + '\',' + i + ')"><span class="material-icons-round" style="font-size:16px">restart_alt</span></button>' +
+            '</div></div>';
+    }
+    ge("avalList").innerHTML = html;
 }
 
-function salvarAvaliacao(operador, idx, semana) {
-    var notaEl = document.getElementById("nota_" + idx);
-    var pontoEl = document.getElementById("ponto_" + idx);
-    if (!notaEl || !pontoEl) return;
+function salvarAvaliacao(nome, idx) {
+    var nota = ge("nota_" + idx).value;
+    var obs = ge("obs_" + idx).value;
+    if (nota === "" || parseFloat(nota) < 0 || parseFloat(nota) > 100) return;
+    var today = new Date().toISOString().split("T")[0];
+    var md = getMonthData();
+    md[today + "||" + nome] = { nota: parseFloat(nota), obs: obs };
+    setMonthData(md);
+    renderAvaliacoes();
+}
+function resetAvaliacao(nome, idx) {
+    var today = new Date().toISOString().split("T")[0];
+    var md = getMonthData();
+    delete md[today + "||" + nome];
+    setMonthData(md);
+    renderAvaliacoes();
+}
 
-    var nota = parseInt(notaEl.value) || 0;
-    if (nota < 0) nota = 0;
-    if (nota > 100) nota = 100;
-    notaEl.value = nota;
-
-    var ponto = pontoEl.value.trim();
-    var todayStr = new Date().toISOString().slice(0, 10);
-
-    var avaliacoes = loadAvaliacoes();
-    if (!avaliacoes[operador]) avaliacoes[operador] = [];
-
-    var existingIdx = avaliacoes[operador].findIndex(function(a) { return a.data === todayStr; });
-    var avalObj = {
-        data: todayStr,
-        semana: semana,
-        nota: nota,
-        pontoAtencao: ponto
-    };
-
-    if (existingIdx >= 0) {
-        avaliacoes[operador][existingIdx] = avalObj;
-    } else {
-        avaliacoes[operador].push(avalObj);
-    }
-
-    saveAvaliacoes(avaliacoes);
-
-    // Update badge inline
-    var card = document.getElementById("avalCard_" + idx);
-    if (card) {
-        var badge = card.querySelector(".aval-card-badge");
-        if (nota > 0) {
-            badge.textContent = "Aplicado";
-            badge.className = "aval-card-badge badge-aplicado";
-        } else {
-            badge.textContent = "Pendente";
-            badge.className = "aval-card-badge badge-pendente";
+// ======= RENDER: EVOLUÇÃO =======
+function renderEvolucao() {
+    var sched = getScheduleForMonth();
+    var md = getMonthData();
+    var weeks = {};
+    var dates = Object.keys(sched).sort();
+    for (var i = 0; i < dates.length; i++) {
+        var wk = getWeekNumber(new Date(dates[i] + "T12:00:00"));
+        var wkLabel = "Semana " + wk;
+        if (!weeks[wkLabel]) weeks[wkLabel] = { total: 0, feito: 0, soma: 0 };
+        var names = sched[dates[i]];
+        weeks[wkLabel].total += names.length;
+        for (var j = 0; j < names.length; j++) {
+            var key = dates[i] + "||" + names[j];
+            if (md[key] && md[key].nota !== null && md[key].nota !== undefined && md[key].nota !== "") {
+                weeks[wkLabel].feito++;
+                weeks[wkLabel].soma += parseFloat(md[key].nota);
+            }
         }
     }
-}
 
-function resetarAvaliacao(operador, idx) {
-    var notaEl = document.getElementById("nota_" + idx);
-    var pontoEl = document.getElementById("ponto_" + idx);
-    if (notaEl) notaEl.value = 0;
-    if (pontoEl) pontoEl.value = "";
-
-    var todayStr = new Date().toISOString().slice(0, 10);
-    var avaliacoes = loadAvaliacoes();
-
-    if (avaliacoes[operador]) {
-        avaliacoes[operador] = avaliacoes[operador].filter(function(a) { return a.data !== todayStr; });
-    }
-
-    saveAvaliacoes(avaliacoes);
-
-    var card = document.getElementById("avalCard_" + idx);
-    if (card) {
-        var badge = card.querySelector(".aval-card-badge");
-        badge.textContent = "Pendente";
-        badge.className = "aval-card-badge badge-pendente";
-    }
-}
-
-// ==================== RENDER: EVOLUÇÃO ====================
-
-function renderEvolucao() {
-    var weeklyStats = getWeeklyStats();
-    var container = document.getElementById("evolucaoContent");
     var html = "";
-    var sortedWeeks = Object.keys(weeklyStats).sort(function(a, b) { return a - b; });
-
-    if (sortedWeeks.length === 0) {
-        html = '<div style="text-align:center;color:var(--text-muted);padding:40px;">Nenhuma semana disponível no mês atual.</div>';
-    }
-
-    sortedWeeks.forEach(function(wk) {
-        var w = weeklyStats[wk];
-        var pct = w.total > 0 ? Math.round((w.done / w.total) * 100) : 0;
-
-        html +=
-        '<div class="evolucao-week">' +
-            '<h3><span class="material-icons-round" style="color:var(--accent);font-size:20px">date_range</span> Semana ' + wk + '</h3>' +
+    var wkLabels = Object.keys(weeks);
+    for (var i = 0; i < wkLabels.length; i++) {
+        var w = weeks[wkLabels[i]];
+        var pct = w.total > 0 ? ((w.feito / w.total) * 100).toFixed(0) : 0;
+        var media = w.feito > 0 ? (w.soma / w.feito).toFixed(1) : "—";
+        html += '<div class="evolucao-week">' +
+            '<h3><span class="material-icons-round" style="color:var(--accent);font-size:18px">date_range</span>' + wkLabels[i] + '</h3>' +
             '<div class="evolucao-bar"><div class="evolucao-bar-fill" style="width:' + pct + '%"></div></div>' +
             '<div class="evolucao-stats">' +
-                '<span>Planejadas: <strong>' + w.total + '</strong></span>' +
-                '<span>Realizadas: <strong style="color:var(--success)">' + w.done + '</strong></span>' +
-                '<span>Conclusão: <strong style="color:var(--accent-light)">' + pct + '%</strong></span>' +
-            '</div>' +
-        '</div>';
-    });
-
-    container.innerHTML = html;
-}
-
-// ==================== RENDER: OPERADORES ====================
-
-function renderOperadores() {
-    var avaliacoes = loadAvaliacoes();
-    var grid = document.getElementById("operadoresGrid");
-    var colors = ["#6c5ce7","#00cec9","#fdcb6e","#ff6b6b","#74b9ff","#a29bfe","#55efc4","#fd79a8"];
-
-    var html = "";
-    OPERADORES.forEach(function(op, i) {
-        var opAvals = avaliacoes[op] || [];
-        var realizadas = opAvals.filter(function(a) { return a.nota > 0; }).length;
-        var total = 4;
-        var statusClass = realizadas >= 4 ? "completo" : realizadas > 0 ? "parcial" : "pendente-status";
-        var initials = op.split(" ").slice(0, 2).map(function(n) { return n[0]; }).join("");
-        var bgColor = colors[i % colors.length];
-
-        html +=
-        '<div class="operador-card">' +
-            '<div class="operador-avatar" style="background:' + bgColor + '20;color:' + bgColor + '">' + initials + '</div>' +
-            '<div class="operador-info">' +
-                '<div class="operador-name" title="' + op + '">' + op + '</div>' +
-                '<div class="operador-meta">' + (TURNOS[op] || "—") + '</div>' +
-            '</div>' +
-            '<div class="operador-status ' + statusClass + '">' + realizadas + '/' + total + '</div>' +
-        '</div>';
-    });
-
-    grid.innerHTML = html;
-}
-
-// ==================== RENDER: CALIBRAGEM ====================
-
-var chartCalibragemInstance = null;
-
-function renderCalibragem() {
-    var avaliacoes = loadAvaliacoes();
-    var notas = [];
-
-    OPERADORES.forEach(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        opAvals.forEach(function(a) {
-            if (a.nota > 0) notas.push(a.nota);
-        });
-    });
-
-    // Distribution buckets
-    var buckets = { "0-20": 0, "21-40": 0, "41-60": 0, "61-80": 0, "81-100": 0 };
-    notas.forEach(function(n) {
-        if (n <= 20) buckets["0-20"]++;
-        else if (n <= 40) buckets["21-40"]++;
-        else if (n <= 60) buckets["41-60"]++;
-        else if (n <= 80) buckets["61-80"]++;
-        else buckets["81-100"]++;
-    });
-
-    var ctx = document.getElementById("chartCalibragem");
-    if (ctx) {
-        if (chartCalibragemInstance) chartCalibragemInstance.destroy();
-
-        chartCalibragemInstance = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: Object.keys(buckets),
-                datasets: [{
-                    label: "Quantidade de Notas",
-                    data: Object.values(buckets),
-                    backgroundColor: ["#ff6b6b","#fdcb6e","#74b9ff","#a29bfe","#00cec9"],
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: { ticks: { color: "#5c6078" }, grid: { color: "rgba(42,45,62,0.5)" } },
-                    y: { ticks: { color: "#5c6078", stepSize: 1 }, grid: { color: "rgba(42,45,62,0.5)" }, beginAtZero: true }
-                }
-            }
-        });
+            '<span>Avaliados: <strong style="color:var(--success)">' + w.feito + '/' + w.total + '</strong></span>' +
+            '<span>Conclusão: <strong style="color:var(--accent-light)">' + pct + '%</strong></span>' +
+            '<span>Média: <strong style="color:var(--info)">' + media + '</strong></span>' +
+            '</div></div>';
     }
+    ge("evolucaoContent").innerHTML = html || '<p style="color:var(--text-muted)">Nenhuma semana calculada.</p>';
+}
+
+// ======= RENDER: OPERADORES =======
+function renderOperadores() {
+    var ops = loadOperadores();
+    var md = getMonthData();
+    var sched = getScheduleForMonth();
+    var isAdmin = currentUser && currentUser.role === "admin";
+
+    // Count evals per operator
+    var evalCount = {};
+    var dates = Object.keys(sched);
+    for (var d = 0; d < dates.length; d++) {
+        var names = sched[dates[d]];
+        for (var n = 0; n < names.length; n++) {
+            var key = dates[d] + "||" + names[n];
+            if (!evalCount[names[n]]) evalCount[names[n]] = { total: 0, feito: 0 };
+            evalCount[names[n]].total++;
+            if (md[key] && md[key].nota !== null && md[key].nota !== undefined && md[key].nota !== "") evalCount[names[n]].feito++;
+        }
+    }
+
+    var colors = ["#6c5ce7", "#00cec9", "#fdcb6e", "#74b9ff", "#ff6b6b", "#a29bfe", "#55efc4", "#fab1a0"];
+    var html = "";
+    for (var i = 0; i < ops.length; i++) {
+        var op = ops[i];
+        var initials = op.nome.split(" ").map(function (w) { return w[0]; }).slice(0, 2).join("");
+        var color = colors[i % colors.length];
+        var ec = evalCount[op.nome] || { total: 0, feito: 0 };
+        var status, statusClass;
+        if (ec.feito === 0) { status = "0/" + ec.total; statusClass = "pendente-status"; }
+        else if (ec.feito === ec.total) { status = ec.feito + "/" + ec.total; statusClass = "completo"; }
+        else { status = ec.feito + "/" + ec.total; statusClass = "parcial"; }
+
+        var safeNome = op.nome.replace(/'/g, "\\'");
+        var removeBtn = isAdmin ? '<button class="btn-icon-sm" title="Remover" onclick="confirmarRemoverOperador(\'' + safeNome + '\')"><span class="material-icons-round">delete</span></button>' : '';
+
+        html += '<div class="operador-card">' +
+            '<div class="operador-avatar" style="background:' + color + '20;color:' + color + '">' + initials + '</div>' +
+            '<div class="operador-info"><div class="operador-name" title="' + op.nome + '">' + op.nome + '</div>' +
+            '<div class="operador-meta">' + op.turno + '</div></div>' +
+            '<span class="operador-status ' + statusClass + '">' + status + '</span>' +
+            '<div class="operador-actions">' + removeBtn + '</div></div>';
+    }
+    ge("operadoresGrid").innerHTML = html || '<p style="color:var(--text-muted)">Nenhum operador cadastrado.</p>';
+}
+
+function abrirModalAddOperador() {
+    var body = '<div class="field-group"><label>Nome do Operador</label><input type="text" id="modalOpNome" placeholder="Nome completo"></div>' +
+        '<div class="field-group"><label>Turno</label><select id="modalOpTurno"><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option></select></div>' +
+        '<button class="btn-primary" onclick="confirmarAddOperador()">Adicionar</button>';
+    abrirModal("Adicionar Operador", body);
+}
+function confirmarAddOperador() {
+    var nome = ge("modalOpNome").value.trim().toUpperCase();
+    var turno = ge("modalOpTurno").value;
+    if (!nome) return;
+    var ops = loadOperadores();
+    for (var i = 0; i < ops.length; i++) { if (ops[i].nome === nome) { fecharModal(); return; } }
+    ops.push({ nome: nome, turno: turno });
+    saveOperadores(ops);
+    fecharModal();
+    renderOperadores();
+}
+function confirmarRemoverOperador(nome) {
+    var body = '<p style="margin-bottom:16px;color:var(--text-secondary)">Remover operador <strong style="color:var(--text-primary)">' + nome + '</strong>?</p>' +
+        '<p style="margin-bottom:16px;color:var(--text-muted);font-size:12px">As avaliações já registradas serão mantidas.</p>' +
+        '<button class="btn-primary" style="background:var(--danger)" onclick="removerOperador(\'' + nome.replace(/'/g, "\\'") + '\')">Confirmar Remoção</button>';
+    abrirModal("Remover Operador", body);
+}
+function removerOperador(nome) {
+    var ops = loadOperadores();
+    ops = ops.filter(function (o) { return o.nome !== nome; });
+    saveOperadores(ops);
+    fecharModal();
+    renderOperadores();
+}
+
+// ======= RENDER: CALIBRAGEM =======
+function renderCalibragem() {
+    destroyChart("calibragem");
+    var md = getMonthData();
+    var ops = loadOperadores();
+    var opNotas = {};
+    var allKeys = Object.keys(md);
+    for (var i = 0; i < allKeys.length; i++) {
+        var parts = allKeys[i].split("||");
+        if (parts.length < 2) continue;
+        var nome = parts[1];
+        if (md[allKeys[i]].nota !== null && md[allKeys[i]].nota !== undefined && md[allKeys[i]].nota !== "") {
+            if (!opNotas[nome]) opNotas[nome] = [];
+            opNotas[nome].push(parseFloat(md[allKeys[i]].nota));
+        }
+    }
+
+    // Distribution chart
+    var faixas = { "0-20": 0, "21-40": 0, "41-60": 0, "61-80": 0, "81-100": 0 };
+    for (var n in opNotas) {
+        var media = opNotas[n].reduce(function (a, b) { return a + b; }, 0) / opNotas[n].length;
+        if (media <= 20) faixas["0-20"]++;
+        else if (media <= 40) faixas["21-40"]++;
+        else if (media <= 60) faixas["41-60"]++;
+        else if (media <= 80) faixas["61-80"]++;
+        else faixas["81-100"]++;
+    }
+
+    var ctx = ge("chartCalibragem").getContext("2d");
+    chartInstances["calibragem"] = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: Object.keys(faixas),
+            datasets: [{ label: "Operadores", data: Object.values(faixas), backgroundColor: ["#ff6b6b", "#fdcb6e", "#74b9ff", "#a29bfe", "#00cec9"], borderWidth: 0 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: true, indexAxis: "y",
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { color: "#5c6078", stepSize: 1, font: { family: "Plus Jakarta Sans", size: 10 } }, grid: { color: "#2a2d3e" } },
+                y: { ticks: { color: "#8b8fa7", font: { family: "Plus Jakarta Sans", size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
 
     // Table
-    var tableEl = document.getElementById("calibragemTable");
-    var tableHTML = '<table>' +
-        '<thead><tr><th>Operador</th><th>Turno</th><th>Avaliações</th><th>Média</th></tr></thead>' +
-        '<tbody>';
+    var rows = [];
+    for (var i = 0; i < ops.length; i++) {
+        var nome = ops[i].nome;
+        var notas = opNotas[nome] || [];
+        var media = notas.length > 0 ? (notas.reduce(function (a, b) { return a + b; }, 0) / notas.length).toFixed(1) : "—";
+        rows.push({ nome: nome, turno: ops[i].turno, avaliacoes: notas.length, media: media });
+    }
+    rows.sort(function (a, b) { return (parseFloat(b.media) || 0) - (parseFloat(a.media) || 0); });
 
-    OPERADORES.forEach(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        var notasOp = opAvals.filter(function(a) { return a.nota > 0; }).map(function(a) { return a.nota; });
-        var media = notasOp.length > 0 ? (notasOp.reduce(function(s, n) { return s + n; }, 0) / notasOp.length).toFixed(1) : "—";
-
-        tableHTML += '<tr>' +
-            '<td>' + op + '</td>' +
-            '<td>' + (TURNOS[op] || "—") + '</td>' +
-            '<td>' + notasOp.length + '/4</td>' +
-            '<td>' + media + '</td>' +
-        '</tr>';
-    });
-
-    tableHTML += '</tbody></table>';
-    tableEl.innerHTML = tableHTML;
+    var thtml = '<table><thead><tr><th>#</th><th>Operador</th><th>Turno</th><th>Avaliações</th><th>Média</th></tr></thead><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+        thtml += '<tr><td>' + (i + 1) + '</td><td>' + rows[i].nome + '</td><td>' + rows[i].turno + '</td><td>' + rows[i].avaliacoes + '</td><td style="font-weight:700;color:var(--accent-light)">' + rows[i].media + '</td></tr>';
+    }
+    thtml += '</tbody></table>';
+    ge("calibragemTable").innerHTML = thtml;
 }
 
-// ==================== RENDER: CONFIGURAÇÕES ====================
-
+// ======= RENDER: CONFIGURAÇÕES =======
 function renderConfiguracoes() {
-    var historico = loadHistorico();
-    var container = document.getElementById("historicoContainer");
+    renderUsersList();
+    renderHistorico();
+}
 
-    if (historico.length === 0) {
-        container.innerHTML = '<p class="historico-empty">Nenhum mês anterior registrado.</p>';
+function renderUsersList() {
+    var users = loadUsers();
+    var isAdmin = currentUser && currentUser.role === "admin";
+    var html = "";
+    for (var i = 0; i < users.length; i++) {
+        var u = users[i];
+        var safeU = u.username.replace(/'/g, "\\'");
+        var actions = '';
+        if (isAdmin) {
+            actions += '<button class="btn-sm" onclick="abrirModalAlterarSenha(\'' + safeU + '\')"><span class="material-icons-round">key</span> Senha</button>';
+            if (u.username !== "admin") {
+                actions += '<button class="btn-sm danger" onclick="confirmarRemoverUsuario(\'' + safeU + '\')"><span class="material-icons-round">delete</span> Remover</button>';
+            }
+        } else if (u.username === currentUser.username) {
+            actions += '<button class="btn-sm" onclick="abrirModalAlterarSenha(\'' + safeU + '\')"><span class="material-icons-round">key</span> Minha Senha</button>';
+        }
+        html += '<div class="user-row"><div class="user-row-info"><div class="user-row-name">' + u.username + '</div>' +
+            '<div class="user-row-role">' + (u.role === "admin" ? "Administrador" : "Operador") + '</div></div>' +
+            '<div class="user-row-actions">' + actions + '</div></div>';
+    }
+    ge("usersListContainer").innerHTML = html;
+}
+
+function abrirModalAddUsuario() {
+    var body = '<div class="field-group"><label>Usuário</label><input type="text" id="modalNewUser" placeholder="Nome de usuário"></div>' +
+        '<div class="field-group"><label>Senha</label><input type="password" id="modalNewPass" placeholder="Senha"></div>' +
+        '<div class="field-group"><label>Tipo</label><select id="modalNewRole"><option value="user">Operador</option><option value="admin">Administrador</option></select></div>' +
+        '<button class="btn-primary" onclick="confirmarAddUsuario()">Criar Usuário</button>';
+    abrirModal("Adicionar Usuário", body);
+}
+function confirmarAddUsuario() {
+    var username = ge("modalNewUser").value.trim().toLowerCase();
+    var password = ge("modalNewPass").value;
+    var role = ge("modalNewRole").value;
+    if (!username || !password) return;
+    var users = loadUsers();
+    for (var i = 0; i < users.length; i++) { if (users[i].username === username) { fecharModal(); return; } }
+    users.push({ username: username, password: password, role: role });
+    saveUsers(users);
+    fecharModal();
+    renderUsersList();
+}
+function abrirModalAlterarSenha(username) {
+    var body = '<div class="field-group"><label>Nova Senha para <strong>' + username + '</strong></label><input type="password" id="modalNewPassChange" placeholder="Nova senha"></div>' +
+        '<button class="btn-primary" onclick="confirmarAlterarSenha(\'' + username + '\')">Alterar Senha</button>';
+    abrirModal("Alterar Senha", body);
+}
+function confirmarAlterarSenha(username) {
+    var newPass = ge("modalNewPassChange").value;
+    if (!newPass) return;
+    var users = loadUsers();
+    for (var i = 0; i < users.length; i++) {
+        if (users[i].username === username) { users[i].password = newPass; break; }
+    }
+    saveUsers(users);
+    fecharModal();
+    renderUsersList();
+}
+function confirmarRemoverUsuario(username) {
+    var body = '<p style="margin-bottom:16px;color:var(--text-secondary)">Remover o usuário <strong style="color:var(--text-primary)">' + username + '</strong>?</p>' +
+        '<button class="btn-primary" style="background:var(--danger)" onclick="removerUsuario(\'' + username + '\')">Confirmar Remoção</button>';
+    abrirModal("Remover Usuário", body);
+}
+function removerUsuario(username) {
+    var users = loadUsers();
+    users = users.filter(function (u) { return u.username !== username; });
+    saveUsers(users);
+    fecharModal();
+    renderUsersList();
+}
+
+function renderHistorico() {
+    var h = loadHistorico();
+    var keys = Object.keys(h).sort().reverse();
+    if (keys.length === 0) {
+        ge("historicoContainer").innerHTML = '<p class="historico-empty">Nenhum histórico salvo.</p>';
         return;
     }
-
     var html = "";
-    historico.slice().reverse().forEach(function(h) {
-        html +=
-        '<div class="historico-card">' +
-            '<div>' +
-                '<div class="hist-label">Mês</div>' +
-                '<div class="hist-value">' + h.label + '</div>' +
-            '</div>' +
-            '<div>' +
-                '<div class="hist-label">Planejado</div>' +
-                '<div class="hist-value">' + h.planejado + '</div>' +
-            '</div>' +
-            '<div>' +
-                '<div class="hist-label">Realizado</div>' +
-                '<div class="hist-value" style="color:var(--success)">' + h.realizado + '</div>' +
-            '</div>' +
-            '<div>' +
-                '<div class="hist-label">Pendente</div>' +
-                '<div class="hist-value" style="color:var(--warning)">' + h.pendente + '</div>' +
-            '</div>' +
-            '<div>' +
-                '<div class="hist-label">Conclusão</div>' +
-                '<div class="hist-value" style="color:var(--accent-light)">' + h.percentual + '%</div>' +
-            '</div>' +
-        '</div>';
-    });
-
-    container.innerHTML = html;
+    for (var i = 0; i < keys.length; i++) {
+        var d = h[keys[i]];
+        html += '<div class="historico-card">' +
+            '<div><div class="hist-label">Mês</div><div class="hist-value">' + keys[i] + '</div></div>' +
+            '<div><div class="hist-label">Avaliações</div><div class="hist-value">' + (d.totalAvaliados || 0) + '</div></div>' +
+            '<div><div class="hist-label">Média</div><div class="hist-value">' + (d.media || "—") + '</div></div>' +
+            '</div>';
+    }
+    ge("historicoContainer").innerHTML = html;
 }
 
 function resetMesAtual() {
-    if (!confirm("Tem certeza que deseja resetar o mês atual? Os dados serão salvos no histórico.")) return;
-
-    var avaliacoes = loadAvaliacoes();
-    var historico = loadHistorico();
-    var mesAtual = getMesAno();
-
-    var totalRealizadas = 0;
-    var totalPendentes = 0;
-    OPERADORES.forEach(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        var realizadas = opAvals.filter(function(a) { return a.nota > 0; }).length;
-        totalRealizadas += realizadas;
-        totalPendentes += (4 - realizadas);
-    });
-
-    historico.push({
-        mesAno: mesAtual,
-        label: getMesAnoLabel(mesAtual),
-        planejado: AVALIACOES_POR_MES,
-        realizado: totalRealizadas,
-        pendente: totalPendentes,
-        percentual: AVALIACOES_POR_MES > 0 ? Math.round((totalRealizadas / AVALIACOES_POR_MES) * 100) : 0
-    });
-
-    saveHistorico(historico);
-    saveAvaliacoes({});
+    if (!confirm("Salvar dados atuais no histórico e resetar o mês?")) return;
+    var md = getMonthData();
+    var keys = Object.keys(md);
+    var soma = 0;
+    var count = 0;
+    for (var i = 0; i < keys.length; i++) {
+        if (md[keys[i]].nota !== null && md[keys[i]].nota !== undefined && md[keys[i]].nota !== "") {
+            soma += parseFloat(md[keys[i]].nota);
+            count++;
+        }
+    }
+    var hist = loadHistorico();
+    var mk = getMonthKey();
+    hist[mk] = { totalAvaliados: count, media: count > 0 ? (soma / count).toFixed(1) : "—" };
+    saveHistorico(hist);
+    var all = loadAvaliacoes();
+    delete all[mk];
+    saveAvaliacoes(all);
     renderConfiguracoes();
-    renderVisaoGeral();
+    switchTab("visaoGeral");
 }
 
 function limparTodosDados() {
-    if (!confirm("ATENÇÃO: Isso apagará TODOS os dados (avaliações, histórico, configurações). Deseja continuar?")) return;
-
-    localStorage.removeItem(STORAGE_KEYS.avaliacoes);
-    localStorage.removeItem(STORAGE_KEYS.historico);
+    if (!confirm("Apagar TODOS os dados (avaliações, histórico, operadores)? Esta ação não pode ser desfeita.")) return;
+    localStorage.removeItem(SK_AVALIACOES);
+    localStorage.removeItem(SK_HISTORICO);
+    localStorage.removeItem(SK_OPERADORES);
     renderConfiguracoes();
-    renderVisaoGeral();
+    switchTab("visaoGeral");
 }
 
-// ==================== PDF REPORTS ====================
-
-function getPDFHeader(doc, title) {
-    var now = new Date();
-    var dateStr = now.toLocaleDateString("pt-BR");
-    var timeStr = now.toLocaleTimeString("pt-BR");
-
-    doc.setFillColor(28, 31, 46);
-    doc.rect(0, 0, 210, 30, "F");
-
-    doc.setTextColor(108, 92, 231);
+// ======= PDF REPORTS =======
+function pdfHeader(doc, titulo) {
+    doc.setFillColor(108, 92, 231);
+    doc.rect(0, 0, 210, 28, "F");
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("Monitor.IA", 14, 14);
-
-    doc.setTextColor(162, 155, 254);
-    doc.setFontSize(9);
+    doc.text("Monitor.IA — Atual Assessoria", 14, 12);
+    doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text("Atual Assessoria de Cobrança", 14, 20);
-
-    doc.setTextColor(139, 143, 167);
-    doc.setFontSize(8);
-    doc.text("Gerado em: " + dateStr + " às " + timeStr, 14, 26);
-
-    doc.setTextColor(50, 50, 50);
-    doc.setFontSize(13);
-    doc.setFont("helvetica", "bold");
-    doc.text(title, 14, 40);
-
-    return 48;
+    doc.text(titulo, 14, 20);
+    doc.text(new Date().toLocaleDateString("pt-BR"), 196, 12, { align: "right" });
+    doc.setTextColor(0, 0, 0);
+    return 36;
 }
 
 function gerarRelatorioMensalGeral() {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF();
-    var y = getPDFHeader(doc, "Relatório Mensal Geral — " + getMesAnoLabel(getMesAno()));
-
-    var stats = getAvaliacoesStats();
-    var avaliacoes = loadAvaliacoes();
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(60, 60, 60);
-
-    var info = [
-        ["Total de Operadores", TOTAL_OPERADORES],
-        ["Avaliações Planejadas", stats.planejado],
-        ["Avaliações Realizadas", stats.realizado],
-        ["Avaliações Pendentes", stats.pendente],
-        ["Conclusão", stats.percentual + "%"],
-        ["Média Geral", stats.media],
-        ["Operadores Completos (4/4)", stats.completos]
-    ];
-
-    info.forEach(function(item) {
-        doc.text(item[0] + ": " + item[1], 14, y);
-        y += 6;
-    });
-
-    y += 6;
-
-    var tableData = OPERADORES.map(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        var notasOp = opAvals.filter(function(a) { return a.nota > 0; }).map(function(a) { return a.nota; });
-        var media = notasOp.length > 0 ? (notasOp.reduce(function(s, n) { return s + n; }, 0) / notasOp.length).toFixed(1) : "—";
-        return [op, TURNOS[op] || "—", notasOp.length + "/4", media];
-    });
-
+    var y = pdfHeader(doc, "Relatório Mensal Geral — " + getMonthKey());
+    var md = getMonthData();
+    var ops = loadOperadores();
+    var rows = [];
+    for (var i = 0; i < ops.length; i++) {
+        var notas = [];
+        var allKeys = Object.keys(md);
+        for (var j = 0; j < allKeys.length; j++) {
+            if (allKeys[j].indexOf("||" + ops[i].nome) !== -1 && md[allKeys[j]].nota !== null && md[allKeys[j]].nota !== undefined && md[allKeys[j]].nota !== "") {
+                notas.push(parseFloat(md[allKeys[j]].nota));
+            }
+        }
+        var media = notas.length > 0 ? (notas.reduce(function (a, b) { return a + b; }, 0) / notas.length).toFixed(1) : "—";
+        rows.push([ops[i].nome, ops[i].turno, notas.length.toString(), media]);
+    }
     doc.autoTable({
-        startY: y,
-        head: [["Operador", "Turno", "Aval.", "Média"]],
-        body: tableData,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [108, 92, 231], textColor: 255 },
-        alternateRowStyles: { fillColor: [245, 245, 250] }
+        startY: y, head: [["Operador", "Turno", "Avaliações", "Média"]],
+        body: rows,
+        styles: { fontSize: 8, font: "helvetica" },
+        headStyles: { fillColor: [108, 92, 231] }
     });
-
-    doc.save("relatorio_mensal_geral.pdf");
+    doc.save("relatorio_mensal_" + getMonthKey() + ".pdf");
 }
 
 function gerarRelatorioPendencias() {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF();
-    var y = getPDFHeader(doc, "Relatório de Pendências — " + getMesAnoLabel(getMesAno()));
-
-    var avaliacoes = loadAvaliacoes();
-    var pendentes = [];
-
-    OPERADORES.forEach(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        var realizadas = opAvals.filter(function(a) { return a.nota > 0; }).length;
-        if (realizadas < 4) {
-            pendentes.push([op, TURNOS[op] || "—", realizadas + "/4", (4 - realizadas) + " pendente(s)"]);
+    var y = pdfHeader(doc, "Relatório de Pendências — " + getMonthKey());
+    var sched = getScheduleForMonth();
+    var md = getMonthData();
+    var rows = [];
+    var dates = Object.keys(sched).sort();
+    for (var d = 0; d < dates.length; d++) {
+        var names = sched[dates[d]];
+        for (var n = 0; n < names.length; n++) {
+            var key = dates[d] + "||" + names[n];
+            if (!md[key] || md[key].nota === null || md[key].nota === undefined || md[key].nota === "") {
+                rows.push([dates[d], names[n]]);
+            }
         }
-    });
-
-    if (pendentes.length === 0) {
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        doc.text("Nenhuma pendência encontrada. Todas as avaliações foram realizadas.", 14, y);
-    } else {
-        doc.autoTable({
-            startY: y,
-            head: [["Operador", "Turno", "Status", "Pendências"]],
-            body: pendentes,
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [253, 203, 110], textColor: [40, 40, 40] },
-            alternateRowStyles: { fillColor: [255, 252, 240] }
-        });
     }
-
-    doc.save("relatorio_pendencias.pdf");
+    doc.autoTable({
+        startY: y, head: [["Data", "Operador"]],
+        body: rows.length > 0 ? rows : [["—", "Sem pendências"]],
+        styles: { fontSize: 8, font: "helvetica" },
+        headStyles: { fillColor: [253, 203, 110], textColor: [0, 0, 0] }
+    });
+    doc.save("pendencias_" + getMonthKey() + ".pdf");
 }
 
 function gerarRelatorioPorOperador() {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF();
-    var y = getPDFHeader(doc, "Relatório por Operador — " + getMesAnoLabel(getMesAno()));
-
-    var avaliacoes = loadAvaliacoes();
-
-    OPERADORES.forEach(function(op, idx) {
-        if (idx > 0 && y > 240) {
-            doc.addPage();
-            y = getPDFHeader(doc, "Relatório por Operador (cont.)");
+    var y = pdfHeader(doc, "Relatório por Operador — " + getMonthKey());
+    var md = getMonthData();
+    var ops = loadOperadores();
+    for (var i = 0; i < ops.length; i++) {
+        var notas = [];
+        var details = [];
+        var allKeys = Object.keys(md).sort();
+        for (var j = 0; j < allKeys.length; j++) {
+            if (allKeys[j].indexOf("||" + ops[i].nome) !== -1 && md[allKeys[j]].nota !== null && md[allKeys[j]].nota !== undefined && md[allKeys[j]].nota !== "") {
+                var dt = allKeys[j].split("||")[0];
+                notas.push(parseFloat(md[allKeys[j]].nota));
+                details.push([dt, md[allKeys[j]].nota.toString(), md[allKeys[j]].obs || ""]);
+            }
         }
-
-        var opAvals = avaliacoes[op] || [];
-        var notasOp = opAvals.filter(function(a) { return a.nota > 0; });
-        var soma = notasOp.map(function(a) { return a.nota; }).reduce(function(s, n) { return s + n; }, 0);
-        var media = notasOp.length > 0 ? (soma / notasOp.length).toFixed(1) : "—";
-
+        if (y > 250) { doc.addPage(); y = 20; }
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(108, 92, 231);
-        doc.text(op, 14, y);
-        y += 5;
-
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(60, 60, 60);
-        doc.setFontSize(8);
-        doc.text("Turno: " + (TURNOS[op] || "—") + " | Avaliações: " + notasOp.length + "/4 | Média: " + media, 14, y);
+        doc.text(ops[i].nome + " (" + ops[i].turno + ")", 14, y);
+        doc.setTextColor(0, 0, 0);
         y += 4;
-
-        if (notasOp.length > 0) {
-            notasOp.forEach(function(a) {
-                var txt = "  Sem " + (a.semana || "?") + " — " + a.data + " — Nota: " + a.nota;
-                if (a.pontoAtencao) txt += " — Obs: " + a.pontoAtencao.substring(0, 60);
-                doc.text(txt, 14, y);
-                y += 4;
-            });
-        } else {
-            doc.text("  Nenhuma avaliação registrada.", 14, y);
-            y += 4;
-        }
-
-        y += 4;
-    });
-
-    doc.save("relatorio_por_operador.pdf");
+        doc.autoTable({
+            startY: y, head: [["Data", "Nota", "Observação"]],
+            body: details.length > 0 ? details : [["—", "—", "Sem avaliações"]],
+            styles: { fontSize: 7, font: "helvetica" },
+            headStyles: { fillColor: [108, 92, 231] },
+            margin: { left: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+    }
+    doc.save("por_operador_" + getMonthKey() + ".pdf");
 }
 
 function gerarRelatorioPorTurno() {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF();
-    var y = getPDFHeader(doc, "Relatório por Turno — " + getMesAnoLabel(getMesAno()));
-
-    var avaliacoes = loadAvaliacoes();
-
-    ["Manhã", "Tarde"].forEach(function(turno) {
-        var ops = OPERADORES.filter(function(op) { return TURNOS[op] === turno; });
-
+    var y = pdfHeader(doc, "Relatório por Turno — " + getMonthKey());
+    var ops = loadOperadores();
+    var md = getMonthData();
+    var turnos = ["Manhã", "Tarde"];
+    for (var t = 0; t < turnos.length; t++) {
+        var turnoOps = ops.filter(function (o) { return o.turno === turnos[t]; });
+        var rows = [];
+        for (var i = 0; i < turnoOps.length; i++) {
+            var notas = [];
+            var allKeys = Object.keys(md);
+            for (var j = 0; j < allKeys.length; j++) {
+                if (allKeys[j].indexOf("||" + turnoOps[i].nome) !== -1 && md[allKeys[j]].nota !== null && md[allKeys[j]].nota !== undefined && md[allKeys[j]].nota !== "") {
+                    notas.push(parseFloat(md[allKeys[j]].nota));
+                }
+            }
+            var media = notas.length > 0 ? (notas.reduce(function (a, b) { return a + b; }, 0) / notas.length).toFixed(1) : "—";
+            rows.push([turnoOps[i].nome, notas.length.toString(), media]);
+        }
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(108, 92, 231);
-        doc.text("Turno: " + turno, 14, y);
-        y += 6;
-
-        var tableData = ops.map(function(op) {
-            var opAvals = avaliacoes[op] || [];
-            var notasOp = opAvals.filter(function(a) { return a.nota > 0; }).map(function(a) { return a.nota; });
-            var media = notasOp.length > 0 ? (notasOp.reduce(function(s, n) { return s + n; }, 0) / notasOp.length).toFixed(1) : "—";
-            return [op, notasOp.length + "/4", media];
-        });
-
+        doc.text("Turno: " + turnos[t], 14, y);
+        doc.setTextColor(0, 0, 0);
+        y += 4;
         doc.autoTable({
-            startY: y,
-            head: [["Operador", "Aval.", "Média"]],
-            body: tableData,
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [108, 92, 231], textColor: 255 },
-            alternateRowStyles: { fillColor: [245, 245, 250] }
+            startY: y, head: [["Operador", "Avaliações", "Média"]],
+            body: rows, styles: { fontSize: 8, font: "helvetica" },
+            headStyles: { fillColor: [108, 92, 231] }
         });
-
         y = doc.lastAutoTable.finalY + 10;
-    });
-
-    doc.save("relatorio_por_turno.pdf");
+    }
+    doc.save("por_turno_" + getMonthKey() + ".pdf");
 }
 
 function gerarRelatorioFechamento() {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF();
-    var y = getPDFHeader(doc, "Fechamento do Mês — " + getMesAnoLabel(getMesAno()));
-
-    var stats = getAvaliacoesStats();
-    var avaliacoes = loadAvaliacoes();
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(60, 60, 60);
-
-    var info = [
-        ["Total de Operadores", TOTAL_OPERADORES],
-        ["Avaliações Planejadas", stats.planejado],
-        ["Avaliações Realizadas", stats.realizado],
-        ["Avaliações Pendentes", stats.pendente],
-        ["Percentual de Conclusão", stats.percentual + "%"],
-        ["Operadores Completos (4/4)", stats.completos],
-        ["Operadores Pendentes", stats.operadoresPendentes]
-    ];
-
-    info.forEach(function(item) {
-        doc.text(item[0] + ": " + item[1], 14, y);
-        y += 6;
-    });
-
-    y += 6;
-
-    var tableData = OPERADORES.map(function(op) {
-        var opAvals = avaliacoes[op] || [];
-        var realizadas = opAvals.filter(function(a) { return a.nota > 0; }).length;
-        var status = realizadas >= 4 ? "COMPLETO" : realizadas + "/4";
-        return [op, TURNOS[op] || "—", status];
-    });
-
-    doc.autoTable({
-        startY: y,
-        head: [["Operador", "Turno", "Status"]],
-        body: tableData,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [108, 92, 231], textColor: 255 },
-        alternateRowStyles: { fillColor: [245, 245, 250] },
-        didParseCell: function(data) {
-            if (data.section === "body" && data.column.index === 2) {
-                if (data.cell.raw === "COMPLETO") {
-                    data.cell.styles.textColor = [0, 180, 170];
-                    data.cell.styles.fontStyle = "bold";
-                }
+    var y = pdfHeader(doc, "Fechamento do Mês — " + getMonthKey());
+    var md = getMonthData();
+    var sched = getScheduleForMonth();
+    var totalSlots = 0;
+    var totalFeito = 0;
+    var soma = 0;
+    var dates = Object.keys(sched);
+    for (var d = 0; d < dates.length; d++) {
+        var names = sched[dates[d]];
+        totalSlots += names.length;
+        for (var n = 0; n < names.length; n++) {
+            var key = dates[d] + "||" + names[n];
+            if (md[key] && md[key].nota !== null && md[key].nota !== undefined && md[key].nota !== "") {
+                totalFeito++;
+                soma += parseFloat(md[key].nota);
             }
         }
-    });
+    }
+    var media = totalFeito > 0 ? (soma / totalFeito).toFixed(1) : "—";
+    var pct = totalSlots > 0 ? ((totalFeito / totalSlots) * 100).toFixed(1) + "%" : "0%";
 
-    doc.save("fechamento_mes.pdf");
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text("Total Programado: " + totalSlots, 14, y); y += 7;
+    doc.text("Total Avaliado: " + totalFeito, 14, y); y += 7;
+    doc.text("Pendentes: " + (totalSlots - totalFeito), 14, y); y += 7;
+    doc.text("Conclusão: " + pct, 14, y); y += 7;
+    doc.setFont("helvetica", "bold");
+    doc.text("Média Geral: " + media, 14, y);
+    doc.save("fechamento_" + getMonthKey() + ".pdf");
 }
 
 function gerarRelatorioHistorico() {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF();
-    var y = getPDFHeader(doc, "Histórico de Meses Anteriores");
-
-    var historico = loadHistorico();
-
-    if (historico.length === 0) {
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        doc.text("Nenhum mês anterior registrado no histórico.", 14, y);
-    } else {
-        var tableData = historico.map(function(h) {
-            return [h.label, h.planejado, h.realizado, h.pendente, h.percentual + "%"];
-        });
-
-        doc.autoTable({
-            startY: y,
-            head: [["Mês", "Planejado", "Realizado", "Pendente", "Conclusão"]],
-            body: tableData,
-            styles: { fontSize: 9, cellPadding: 3 },
-            headStyles: { fillColor: [108, 92, 231], textColor: 255 },
-            alternateRowStyles: { fillColor: [245, 245, 250] }
-        });
+    var y = pdfHeader(doc, "Histórico de Meses");
+    var hist = loadHistorico();
+    var keys = Object.keys(hist).sort().reverse();
+    var rows = [];
+    for (var i = 0; i < keys.length; i++) {
+        rows.push([keys[i], (hist[keys[i]].totalAvaliados || 0).toString(), hist[keys[i]].media || "—"]);
     }
-
+    doc.autoTable({
+        startY: y, head: [["Mês", "Avaliações", "Média"]],
+        body: rows.length > 0 ? rows : [["—", "—", "Sem histórico"]],
+        styles: { fontSize: 9, font: "helvetica" },
+        headStyles: { fillColor: [108, 92, 231] }
+    });
     doc.save("historico_meses.pdf");
 }
 
-// ==================== INIT ====================
-
-function initApp() {
-    checkMonthReset();
-    updateClock();
-    if (clockInterval) clearInterval(clockInterval);
-    clockInterval = setInterval(updateClock, 1000);
-    switchTab("visaoGeral");
-}
-
-// Login via Enter key
-document.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        var loginScreen = document.getElementById("loginScreen");
-        if (loginScreen && loginScreen.style.display !== "none") {
-            doLogin();
-        }
+// ======= KEYPRESS ENTER =======
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && ge("loginScreen").style.display !== "none") {
+        doLogin();
     }
 });
 
-// Auto-check session on load
-document.addEventListener("DOMContentLoaded", function() {
-    checkSession();
-});
+// ======= INIT =======
+(function init() {
+    ge("loginLogoImg").src = LOGO_B64;
+    if (checkSession()) {
+        showApp();
+    }
+})();

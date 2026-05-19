@@ -13,11 +13,11 @@
 </head>
 <body>
 
-<!-- ==================== LOGIN ==================== -->
+<!-- LOGIN -->
 <div id="loginScreen" class="login-screen">
     <div class="login-card">
         <div class="login-logo">
-            <span class="material-icons-round login-icon">monitoring</span>
+            <img id="loginLogoImg" alt="Atual" class="login-logo-img">
             <h1>Monitor<span class="accent">.IA</span></h1>
             <p class="login-subtitle">Atual Assessoria de Cobrança</p>
         </div>
@@ -31,62 +31,52 @@
                 <input type="password" id="loginPass" placeholder="Senha" autocomplete="off">
             </div>
             <div id="loginError" class="login-error" style="display:none;">Usuário ou senha incorretos.</div>
-            <button id="loginBtn" class="btn-login" onclick="doLogin()">Entrar</button>
+            <button class="btn-login" onclick="doLogin()">Entrar</button>
         </div>
     </div>
 </div>
 
-<!-- ==================== APP ==================== -->
+<!-- APP -->
 <div id="appContainer" class="app-container" style="display:none;">
 
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span class="material-icons-round sidebar-logo-icon">monitoring</span>
+            <img id="sidebarLogoImg" alt="Atual" class="sidebar-logo-img">
             <h2 class="sidebar-title">Monitor<span class="accent">.IA</span></h2>
         </div>
         <nav class="sidebar-nav">
             <button class="nav-btn active" data-tab="visaoGeral" onclick="switchTab('visaoGeral')">
-                <span class="material-icons-round">dashboard</span>
-                <span>Visão Geral</span>
+                <span class="material-icons-round">dashboard</span><span>Visão Geral</span>
             </button>
             <button class="nav-btn" data-tab="avaliacoes" onclick="switchTab('avaliacoes')">
-                <span class="material-icons-round">assignment</span>
-                <span>Avaliações</span>
+                <span class="material-icons-round">assignment</span><span>Avaliações</span>
             </button>
             <button class="nav-btn" data-tab="evolucao" onclick="switchTab('evolucao')">
-                <span class="material-icons-round">trending_up</span>
-                <span>Evolução</span>
+                <span class="material-icons-round">trending_up</span><span>Evolução</span>
             </button>
             <button class="nav-btn" data-tab="operadores" onclick="switchTab('operadores')">
-                <span class="material-icons-round">people</span>
-                <span>Operadores</span>
+                <span class="material-icons-round">people</span><span>Operadores</span>
             </button>
             <button class="nav-btn" data-tab="calibragem" onclick="switchTab('calibragem')">
-                <span class="material-icons-round">tune</span>
-                <span>Calibragem</span>
+                <span class="material-icons-round">tune</span><span>Calibragem</span>
             </button>
             <button class="nav-btn" data-tab="relatorios" onclick="switchTab('relatorios')">
-                <span class="material-icons-round">description</span>
-                <span>Relatórios</span>
+                <span class="material-icons-round">description</span><span>Relatórios</span>
             </button>
             <button class="nav-btn" data-tab="configuracoes" onclick="switchTab('configuracoes')">
-                <span class="material-icons-round">settings</span>
-                <span>Configurações</span>
+                <span class="material-icons-round">settings</span><span>Configurações</span>
             </button>
         </nav>
         <div class="sidebar-footer">
             <button class="btn-logout" onclick="doLogout()">
-                <span class="material-icons-round">logout</span>
-                <span>Sair</span>
+                <span class="material-icons-round">logout</span><span>Sair</span>
             </button>
         </div>
     </aside>
 
     <!-- MAIN -->
     <main class="main-content">
-
-        <!-- HEADER -->
         <header class="top-header">
             <button class="menu-toggle" onclick="toggleSidebar()">
                 <span class="material-icons-round">menu</span>
@@ -97,130 +87,85 @@
             </div>
             <div class="header-user">
                 <span class="material-icons-round">account_circle</span>
-                <span>Admin</span>
+                <span id="headerUserName">Admin</span>
             </div>
         </header>
 
-        <!-- TAB: VISÃO GERAL -->
+        <!-- VISÃO GERAL -->
         <section id="tab-visaoGeral" class="tab-content active">
-            <div class="tab-header">
-                <h2>Visão Geral</h2>
-                <p id="visaoGeralDatetime" class="tab-subtitle"></p>
-            </div>
+            <div class="tab-header"><h2>Visão Geral</h2><p id="visaoGeralDatetime" class="tab-subtitle"></p></div>
             <div class="kpi-grid" id="kpiGrid"></div>
             <div class="charts-row">
-                <div class="chart-card">
-                    <h3>Progresso Semanal</h3>
-                    <canvas id="chartSemanal"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3>Distribuição de Status</h3>
-                    <canvas id="chartStatus"></canvas>
-                </div>
+                <div class="chart-card"><h3>Progresso Semanal</h3><canvas id="chartSemanal"></canvas></div>
+                <div class="chart-card"><h3>Distribuição de Status</h3><canvas id="chartStatus"></canvas></div>
             </div>
         </section>
 
-        <!-- TAB: AVALIAÇÕES -->
+        <!-- AVALIAÇÕES -->
         <section id="tab-avaliacoes" class="tab-content">
-            <div class="tab-header">
-                <h2>Avaliações</h2>
-                <p class="tab-subtitle">Operadores programados para hoje</p>
-            </div>
+            <div class="tab-header"><h2>Avaliações</h2><p class="tab-subtitle">Operadores programados para hoje</p></div>
             <div class="avaliacoes-layout">
                 <div class="avaliacoes-dashboard" id="avalDashboard"></div>
                 <div class="avaliacoes-list" id="avalList"></div>
             </div>
         </section>
 
-        <!-- TAB: EVOLUÇÃO -->
+        <!-- EVOLUÇÃO -->
         <section id="tab-evolucao" class="tab-content">
-            <div class="tab-header">
-                <h2>Evolução</h2>
-                <p class="tab-subtitle">Acompanhamento semanal das avaliações</p>
-            </div>
+            <div class="tab-header"><h2>Evolução</h2><p class="tab-subtitle">Acompanhamento semanal</p></div>
             <div class="evolucao-content" id="evolucaoContent"></div>
         </section>
 
-        <!-- TAB: OPERADORES -->
+        <!-- OPERADORES -->
         <section id="tab-operadores" class="tab-content">
-            <div class="tab-header">
-                <h2>Operadores</h2>
-                <p class="tab-subtitle">Lista completa de operadores e status mensal</p>
+            <div class="tab-header"><h2>Operadores</h2><p class="tab-subtitle">Gerenciamento de operadores</p></div>
+            <div class="operadores-toolbar">
+                <button class="btn-primary" onclick="abrirModalAddOperador()">
+                    <span class="material-icons-round" style="font-size:18px">person_add</span> Adicionar Operador
+                </button>
             </div>
             <div class="operadores-grid" id="operadoresGrid"></div>
         </section>
 
-        <!-- TAB: CALIBRAGEM -->
+        <!-- CALIBRAGEM -->
         <section id="tab-calibragem" class="tab-content">
-            <div class="tab-header">
-                <h2>Calibragem</h2>
-                <p class="tab-subtitle">Distribuição e calibração das notas</p>
-            </div>
+            <div class="tab-header"><h2>Calibragem</h2><p class="tab-subtitle">Distribuição e calibração das notas</p></div>
             <div class="calibragem-content" id="calibragemContent">
-                <div class="chart-card full-width">
-                    <h3>Distribuição de Notas</h3>
-                    <canvas id="chartCalibragem"></canvas>
-                </div>
+                <div class="chart-card full-width"><h3>Distribuição de Notas</h3><canvas id="chartCalibragem"></canvas></div>
                 <div class="calibragem-table-wrapper" id="calibragemTable"></div>
             </div>
         </section>
 
-        <!-- TAB: RELATÓRIOS -->
+        <!-- RELATÓRIOS -->
         <section id="tab-relatorios" class="tab-content">
-            <div class="tab-header">
-                <h2>Relatórios</h2>
-                <p class="tab-subtitle">Geração de relatórios em PDF</p>
-            </div>
-            <div class="relatorios-grid" id="relatoriosGrid">
-                <div class="relatorio-card" onclick="gerarRelatorioMensalGeral()">
-                    <span class="material-icons-round relatorio-icon">summarize</span>
-                    <h3>Relatório Mensal Geral</h3>
-                    <p>Visão consolidada de todas as avaliações do mês.</p>
-                    <span class="btn-gerar">Gerar PDF</span>
-                </div>
-                <div class="relatorio-card" onclick="gerarRelatorioPendencias()">
-                    <span class="material-icons-round relatorio-icon">pending_actions</span>
-                    <h3>Relatório de Pendências</h3>
-                    <p>Lista de avaliações pendentes no mês.</p>
-                    <span class="btn-gerar">Gerar PDF</span>
-                </div>
-                <div class="relatorio-card" onclick="gerarRelatorioPorOperador()">
-                    <span class="material-icons-round relatorio-icon">person_search</span>
-                    <h3>Relatório por Operador</h3>
-                    <p>Detalhamento individual de cada operador.</p>
-                    <span class="btn-gerar">Gerar PDF</span>
-                </div>
-                <div class="relatorio-card" onclick="gerarRelatorioPorTurno()">
-                    <span class="material-icons-round relatorio-icon">schedule</span>
-                    <h3>Relatório por Turno</h3>
-                    <p>Avaliações agrupadas por turno.</p>
-                    <span class="btn-gerar">Gerar PDF</span>
-                </div>
-                <div class="relatorio-card" onclick="gerarRelatorioFechamento()">
-                    <span class="material-icons-round relatorio-icon">lock_clock</span>
-                    <h3>Fechamento do Mês</h3>
-                    <p>Consolidação final do mês atual.</p>
-                    <span class="btn-gerar">Gerar PDF</span>
-                </div>
-                <div class="relatorio-card" onclick="gerarRelatorioHistorico()">
-                    <span class="material-icons-round relatorio-icon">history</span>
-                    <h3>Histórico de Meses</h3>
-                    <p>Dados consolidados de meses anteriores.</p>
-                    <span class="btn-gerar">Gerar PDF</span>
-                </div>
+            <div class="tab-header"><h2>Relatórios</h2><p class="tab-subtitle">Geração de relatórios em PDF</p></div>
+            <div class="relatorios-grid">
+                <div class="relatorio-card" onclick="gerarRelatorioMensalGeral()"><span class="material-icons-round relatorio-icon">summarize</span><h3>Relatório Mensal Geral</h3><p>Visão consolidada de todas as avaliações do mês.</p><span class="btn-gerar">Gerar PDF</span></div>
+                <div class="relatorio-card" onclick="gerarRelatorioPendencias()"><span class="material-icons-round relatorio-icon">pending_actions</span><h3>Relatório de Pendências</h3><p>Lista de avaliações pendentes no mês.</p><span class="btn-gerar">Gerar PDF</span></div>
+                <div class="relatorio-card" onclick="gerarRelatorioPorOperador()"><span class="material-icons-round relatorio-icon">person_search</span><h3>Relatório por Operador</h3><p>Detalhamento individual de cada operador.</p><span class="btn-gerar">Gerar PDF</span></div>
+                <div class="relatorio-card" onclick="gerarRelatorioPorTurno()"><span class="material-icons-round relatorio-icon">schedule</span><h3>Relatório por Turno</h3><p>Avaliações agrupadas por turno.</p><span class="btn-gerar">Gerar PDF</span></div>
+                <div class="relatorio-card" onclick="gerarRelatorioFechamento()"><span class="material-icons-round relatorio-icon">lock_clock</span><h3>Fechamento do Mês</h3><p>Consolidação final do mês atual.</p><span class="btn-gerar">Gerar PDF</span></div>
+                <div class="relatorio-card" onclick="gerarRelatorioHistorico()"><span class="material-icons-round relatorio-icon">history</span><h3>Histórico de Meses</h3><p>Dados consolidados de meses anteriores.</p><span class="btn-gerar">Gerar PDF</span></div>
             </div>
         </section>
 
-        <!-- TAB: CONFIGURAÇÕES -->
+        <!-- CONFIGURAÇÕES -->
         <section id="tab-configuracoes" class="tab-content">
-            <div class="tab-header">
-                <h2>Configurações</h2>
-                <p class="tab-subtitle">Gerenciamento do sistema</p>
-            </div>
+            <div class="tab-header"><h2>Configurações</h2><p class="tab-subtitle">Gerenciamento do sistema</p></div>
             <div class="config-content">
                 <div class="config-section">
+                    <h3><span class="material-icons-round">group</span> Gerenciamento de Usuários</h3>
+                    <p>Adicione, altere senhas ou remova usuários do sistema.</p>
+                    <div class="users-toolbar">
+                        <button class="btn-primary" onclick="abrirModalAddUsuario()">
+                            <span class="material-icons-round" style="font-size:18px">person_add</span> Adicionar Usuário
+                        </button>
+                    </div>
+                    <div id="usersListContainer"></div>
+                </div>
+                <div class="config-section">
                     <h3><span class="material-icons-round">restart_alt</span> Reset do Mês Atual</h3>
-                    <p>Apaga todas as avaliações do mês atual e salva no histórico antes de resetar.</p>
+                    <p>Apaga todas as avaliações do mês atual e salva no histórico.</p>
                     <button class="btn-danger" onclick="resetMesAtual()">Resetar Mês</button>
                 </div>
                 <div class="config-section">
@@ -229,13 +174,23 @@
                 </div>
                 <div class="config-section">
                     <h3><span class="material-icons-round">delete_forever</span> Limpar Todos os Dados</h3>
-                    <p>Remove todas as avaliações, histórico e configurações do localStorage.</p>
+                    <p>Remove todas as avaliações, histórico e configurações.</p>
                     <button class="btn-danger" onclick="limparTodosDados()">Limpar Tudo</button>
                 </div>
             </div>
         </section>
-
     </main>
+</div>
+
+<!-- MODAL -->
+<div id="modalOverlay" class="modal-overlay" style="display:none;" onclick="fecharModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 id="modalTitle">Modal</h3>
+            <button class="modal-close" onclick="fecharModal()"><span class="material-icons-round">close</span></button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
 </div>
 
 <script src="script.js"></script>
