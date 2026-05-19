@@ -275,73 +275,124 @@ function renderOverviewChart() {
 // ==========================================
 
 function renderAvaliacoes(filtered) {
-    const list = filtered || avaliacoes;
-
-    const fCarteira = document.getElementById('f-carteira');
-    const fOperador = document.getElementById('f-operador');
-
-    if (fCarteira && fCarteira.options.length <= 1) {
-        carteiras.forEach(c => {
-            const o = document.createElement('option');
-            o.value = c;
-            o.textContent = c;
-            fCarteira.appendChild(o);
-        });
-    }
-
-    if (fOperador && fOperador.options.length <= 1) {
-        operadores.forEach(op => {
-            const o = document.createElement('option');
-            o.value = op.nome;
-            o.textContent = op.nome;
-            fOperador.appendChild(o);
-        });
-    }
+    const hoje = new Date();
+    const diaSemana = hoje.getDay(); // 0 domingo, 6 sábado
 
     const grid = document.getElementById('avaliacoes-grid');
     if (!grid) return;
 
-    grid.innerHTML = list.map(a => {
-        const statusClass = a.status === 'Pendente' ? 'badge-pendente' : a.status === 'Aplicado' ? 'badge-aplicado' : 'badge-recusado';
+    if (diaSemana === 0 || diaSemana === 6) {
+        grid.innerHTML = `
+            <div class="card" style="padding:24px">
+                <h2>Fim de semana</h2>
+                <p>Não há avaliações programadas para sábado ou domingo.</p>
+            </div>
+        `;
+        return;
+    }
 
-        return `
-        <div class="aval-card">
-            <div class="aval-card-top">
-                <div>
-                    <div class="aval-operador">${a.operador}</div>
-                    <div class="aval-data">
-                        <i class="fa-regular fa-calendar"></i> ${a.semana} — ${formatDate(a.data)}
+    const avaliacoesDoDia = getAvaliacoesDoDia();
+
+    const totalDia = avaliacoesDoDia.length;
+    const realizadas = avaliacoesDoDia.filter(a => a.status !== 'Pendente').length;
+    const pendentes = totalDia - realizadas;
+    const mediaDia = realizadas
+        ? Math.round(avaliacoesDoDia.filter(a => a.status !== 'Pendente').reduce((s, a) => s + a.notaFinal, 0) / realizadas)
+        : 0;
+
+    grid.innerHTML = `
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;width:100%">
+            
+            <div>
+                <div class="card" style="margin-bottom:18px">
+                    <div class="card-header">
+                        <i class="fa-solid fa-calendar-day"></i> Avaliações do dia
                     </div>
+                    <p style="font-size:13px;color:#667085;margin-bottom:12px">
+                        Operadores programados automaticamente para hoje.
+                    </p>
                 </div>
-                <span class="aval-carteira-tag">${a.turno}</span>
-            </div>
 
-            <div class="aval-notas">
-                <div class="aval-nota-box">
-                    <div class="aval-nota-label">Nota IA</div>
-                    <div class="aval-nota-value ${notaClass(a.notaIA)}">${a.notaIA}</div>
+                <div class="avaliacoes-grid">
+                    ${avaliacoesDoDia.map(a => `
+                        <div class="aval-card">
+                            <div class="aval-card-top">
+                                <div>
+                                    <div class="aval-operador">${a.operador}</div>
+                                    <div class="aval-data">
+                                        <i class="fa-regular fa-calendar"></i> ${a.semana} — ${formatDate(a.data)}
+                                    </div>
+                                </div>
+                                <span class="aval-carteira-tag">${a.turno}</span>
+                            </div>
+
+                            <div class="aval-info-row">
+                                <span class="aval-badge ${a.status === 'Pendente' ? 'badge-pendente' : 'badge-aplicado'}">
+                                    ${a.status === 'Pendente' ? '⏳ Pendente' : '✅ Aplicado'}
+                                </span>
+                            </div>
+
+                            <div style="margin-top:12px">
+                                <label style="font-size:11px;font-weight:700;color:#667085">NOTA FINAL</label>
+                                <input 
+                                    type="number" 
+                                    min="0" 
+                                    max="100" 
+                                    value="${a.notaFinal}" 
+                                    onchange="atualizarNota('${a.id}', this.value)"
+                                    style="width:100%;padding:10px;margin-top:6px;border:1px solid #d0d5dd;border-radius:8px;font-weight:700"
+                                >
+                            </div>
+
+                            <div style="margin-top:12px">
+                                <label style="font-size:11px;font-weight:700;color:#667085">PONTO DE ATENÇÃO</label>
+                                <select 
+                                    onchange="atualizarPontoAtencao('${a.id}', this.value)"
+                                    style="width:100%;padding:10px;margin-top:6px;border:1px solid #d0d5dd;border-radius:8px"
+                                >
+                                    ${pontosAtencao.map(p => `
+                                        <option value="${p}" ${a.pontoAtencao === p ? 'selected' : ''}>${p}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+
+                            <div class="aval-card-footer">
+                                <button class="btn btn-green btn-sm" onclick="marcarComoAplicado('${a.id}')">
+                                    <i class="fa-solid fa-check"></i> Salvar Avaliação
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="aval-nota-box">
-                    <div class="aval-nota-label">Nota Final</div>
-                    <div class="aval-nota-value ${notaClass(a.notaFinal)}">${a.notaFinal}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-chart-simple"></i> Dashboard do dia
+                </div>
+
+                <div class="kpi-card" style="margin-bottom:12px">
+                    <div class="kpi-label">Programadas hoje</div>
+                    <div class="kpi-value">${totalDia}</div>
+                </div>
+
+                <div class="kpi-card" style="margin-bottom:12px">
+                    <div class="kpi-label">Realizadas</div>
+                    <div class="kpi-value">${realizadas}</div>
+                </div>
+
+                <div class="kpi-card red" style="margin-bottom:12px">
+                    <div class="kpi-label">Pendentes</div>
+                    <div class="kpi-value">${pendentes}</div>
+                </div>
+
+                <div class="kpi-card blue">
+                    <div class="kpi-label">Média do dia</div>
+                    <div class="kpi-value">${mediaDia}</div>
                 </div>
             </div>
-
-            <div class="aval-info-row">
-                <span class="aval-badge ${statusClass}">
-                    <i class="fa-solid fa-circle" style="font-size:6px"></i> ${a.status}
-                </span>
-            </div>
-
-            <div class="aval-atencao"><strong>Atenção:</strong> ${a.pontoAtencao}</div>
-
-            <div class="aval-card-footer">
-                <button class="btn btn-navy btn-sm" onclick="showDetail('${a.id}')">
-                    <i class="fa-solid fa-eye"></i> Ver Detalhes
-                </button>
-            </div>
-        </div>`;
-    }).join('');
+        </div>
+    `;
 }
 
 function applyFilters() {
@@ -715,7 +766,6 @@ function renderCfgPesos() {
 // ==========================================
 
 function renderRelatorios() {
-    alert('Relatórios em desenvolvimento.');
 }
 
 // ==========================================
@@ -873,4 +923,81 @@ function gerarRelatorioFechamentoPDF() {
     });
 
     doc.save('fechamento-mensal-monitoria.pdf');
+}function getAvaliacoesDoDia() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    const dia = hoje.getDate();
+
+    const diasUteis = [];
+
+    const data = new Date(ano, mes, 1);
+
+    while (data.getMonth() === mes) {
+        const diaSemana = data.getDay();
+
+        if (diaSemana !== 0 && diaSemana !== 6) {
+            diasUteis.push(new Date(data));
+        }
+
+        data.setDate(data.getDate() + 1);
+    }
+
+    const indiceDiaUtil = diasUteis.findIndex(d =>
+        d.getDate() === dia &&
+        d.getMonth() === mes &&
+        d.getFullYear() === ano
+    );
+
+    if (indiceDiaUtil === -1) return [];
+
+    const inicio = indiceDiaUtil * 7;
+    const fim = inicio + 7;
+
+    return avaliacoes.slice(inicio, fim);
+}
+
+function atualizarNota(id, valor) {
+    const avaliacao = avaliacoes.find(a => a.id == id);
+    if (!avaliacao) return;
+
+    let nota = Number(valor);
+
+    if (nota < 0) nota = 0;
+    if (nota > 100) nota = 100;
+
+    avaliacao.notaFinal = nota;
+    avaliacao.notaIA = nota;
+    avaliacao.notaHumana = nota;
+
+    if (nota > 0) {
+        avaliacao.status = 'Aplicado';
+    }
+
+    salvarAvaliacoes();
+    renderAvaliacoes();
+    renderVisaoGeral();
+}
+
+function atualizarPontoAtencao(id, valor) {
+    const avaliacao = avaliacoes.find(a => a.id == id);
+    if (!avaliacao) return;
+
+    avaliacao.pontoAtencao = valor;
+    salvarAvaliacoes();
+}
+
+function marcarComoAplicado(id) {
+    const avaliacao = avaliacoes.find(a => a.id == id);
+    if (!avaliacao) return;
+
+    avaliacao.status = 'Aplicado';
+
+    salvarAvaliacoes();
+    renderAvaliacoes();
+    renderVisaoGeral();
+}
+
+function salvarAvaliacoes() {
+    localStorage.setItem('monitoria_avaliacoes', JSON.stringify(avaliacoes));
 }
