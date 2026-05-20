@@ -1,5 +1,5 @@
 /* ============================================
-   Monitor.IA — Atual Assessoria — Script v3
+   Monitor.IA — Atual Assessoria — Script v4
    HTML/CSS/JS puro — localStorage only
    Cada navegador/dispositivo mantém dados próprios.
    ============================================ */
@@ -46,6 +46,7 @@ var SK_OPS = "monitorIA_operadores";
 var SK_AVAL = "monitorIA_avaliacoes";
 var SK_HIST = "monitorIA_historico";
 var SK_SESSION = "monitorIA_session";
+var SK_USERS = "monitorIA_users";
 
 /* ======= STATE ======= */
 var clockInterval = null;
@@ -57,15 +58,52 @@ function qs(s){return document.querySelector(s)}
 function qsa(s){return document.querySelectorAll(s)}
 function safeJSON(raw,fallback){try{return JSON.parse(raw)}catch(e){return fallback}}
 
-/* ======= CONFIG (user/pass/senha ativa) ======= */
+/* ======= USERS (multi-user system) ======= */
+var DEFAULT_USERS = [
+    {login:"admin",senha:"admin123",nome:"Administrador",cargo:"Administrador"}
+];
+function loadUsers(){
+    var raw=localStorage.getItem(SK_USERS);
+    if(raw){var u=safeJSON(raw,null);if(u&&u.length)return u}
+    localStorage.setItem(SK_USERS,JSON.stringify(DEFAULT_USERS));
+    return JSON.parse(JSON.stringify(DEFAULT_USERS));
+}
+function saveUsers(u){localStorage.setItem(SK_USERS,JSON.stringify(u))}
+
+/* ======= CONFIG (senhaAtiva only now) ======= */
 function loadConfig(){
     var raw = localStorage.getItem(SK_CONFIG);
-    if(raw){var c=safeJSON(raw,null);if(c)return c}
-    var def={username:"admin",password:"admin123",senhaAtiva:true};
+    if(raw){var c=safeJSON(raw,null);if(c){
+        /* Migração: se config antigo tinha username/password, migrar para users */
+        if(c.username && !localStorage.getItem(SK_USERS)){
+            var users=[{login:c.username,senha:c.password||"admin123",nome:c.username,cargo:"Administrador"}];
+            saveUsers(users);
+        }
+        return {senhaAtiva:c.senhaAtiva!==false};
+    }}
+    var def={senhaAtiva:true};
     localStorage.setItem(SK_CONFIG,JSON.stringify(def));
     return def;
 }
 function saveConfig(c){localStorage.setItem(SK_CONFIG,JSON.stringify(c))}
+
+/* ======= SESSION (stores logged user object) ======= */
+function getLoggedUser(){
+    var raw=localStorage.getItem(SK_SESSION);
+    if(!raw)return null;
+    var s=safeJSON(raw,null);
+    if(s&&s.login)return s;
+    /* Compatibilidade: session antiga era "1" */
+    if(raw==="1"){
+        var users=loadUsers();
+        return users[0]||{login:"admin",nome:"Administrador",cargo:"Administrador"};
+    }
+    return null;
+}
+function setLoggedUser(user){
+    localStorage.setItem(SK_SESSION,JSON.stringify({login:user.login,nome:user.nome,cargo:user.cargo}));
+}
+function clearSession(){localStorage.removeItem(SK_SESSION)}
 
 /* ======= OPERADORES ======= */
 function loadOperadores(){
@@ -98,7 +136,6 @@ function getBusinessDays(year,month){
 function getOperationalWeeks(year,month){
     var bDays=getBusinessDays(year,month);
     var weeks=[[],[],[],[]];
-    /* Dividir dias úteis em blocos de 5 (seg-sex), máximo 4 semanas */
     for(var i=0;i<bDays.length;i++){
         var wkIdx=Math.min(Math.floor(i/5),3);
         weeks[wkIdx].push(bDays[i]);
@@ -136,20 +173,11 @@ function getScheduleForMonth(){
     var weeks=getOperationalWeeks(year,month);
     var schedule={};
     for(var w=0;w<weeks.length;w++){
-        var weekOpsUsed={};
         for(var d=0;d<weeks[w].length;d++){
             var dateKey=weeks[w][d].toISOString().split("T")[0];
             var dow=weeks[w][d].getDay();
             var dayOps=getOpsForDay(dow,ops);
-            /* Filtrar operadores já escalados nesta semana (proteção contra semana 4 estendida) */
-            var filtered=[];
-            for(var i=0;i<dayOps.length;i++){
-                if(!weekOpsUsed[dayOps[i].nome]){
-                    weekOpsUsed[dayOps[i].nome]=true;
-                    filtered.push(dayOps[i]);
-                }
-            }
-            schedule[dateKey]=filtered.map(function(o){return o.nome});
+            schedule[dateKey]=dayOps.map(function(o){return o.nome});
         }
     }
     return schedule;
@@ -183,42 +211,41 @@ function checkMonthReset(){
 
 /* ======= LOGIN ======= */
 function doLogin(){
-    var cfg=loadConfig();
+    var users=loadUsers();
     var u=ge("loginUser").value.trim(),p=ge("loginPass").value;
-    if(u===cfg.username&&p===cfg.password){
+    var found=null;
+    for(var i=0;i<users.length;i++){
+        if(users[i].login===u&&users[i].senha===p){found=users[i];break}
+    }
+    if(found){
         ge("loginError").style.display="none";
-        localStorage.setItem(SK_SESSION,"1");
+        setLoggedUser(found);
         showApp();
     }else{
         ge("loginError").style.display="block";
     }
 }
 function doLogout(){
-    localStorage.removeItem(SK_SESSION);
+    clearSession();
     if(clockInterval)clearInterval(clockInterval);
     ge("appContainer").style.display="none";
-    var cfg=loadConfig();
-    if(cfg.senhaAtiva){
-        ge("loginScreen").style.display="flex";
-        ge("loginUser").value="";ge("loginPass").value="";
-    }else{
-        ge("loginScreen").style.display="flex";
-        ge("loginUser").value="";ge("loginPass").value="";
-    }
+    ge("loginScreen").style.display="flex";
+    ge("loginUser").value="";ge("loginPass").value="";
 }
 function checkSession(){
     var cfg=loadConfig();
     if(!cfg.senhaAtiva)return true;
-    return localStorage.getItem(SK_SESSION)==="1";
+    return getLoggedUser()!==null;
 }
 
 /* ======= APP INIT ======= */
 function showApp(){
     ge("loginScreen").style.display="none";
     ge("appContainer").style.display="flex";
-    var cfg=loadConfig();
-    ge("headerUserName").textContent=cfg.username;
-    ge("sidebarUser").textContent="Logado: "+cfg.username;
+    var user=getLoggedUser();
+    var displayName=user?user.nome:"Admin";
+    ge("headerUserName").textContent="Olá, "+displayName;
+    ge("sidebarUser").textContent="Olá, "+displayName;
     startClock();
     switchTab("visaoGeral");
 }
@@ -465,7 +492,7 @@ function renderCalibragem(){
 
 /* ======= RENDER: CONFIGURAÇÕES ======= */
 function renderConfiguracoes(){
-    var cfg=loadConfig(),ops=loadOperadores();
+    var cfg=loadConfig(),ops=loadOperadores(),users=loadUsers();
     var html='';
 
     /* INFO */
@@ -475,11 +502,24 @@ function renderConfiguracoes(){
     html+='<div class="config-section"><h3><span class="material-icons-round">lock</span> Controle de Acesso</h3>';
     html+='<p>Gerencie o login do sistema. Se desativar a senha, o sistema abre direto sem tela de login.</p>';
     html+='<div class="toggle-row"><span class="toggle-label">Senha ativa (exigir login)</span><label class="toggle-switch"><input type="checkbox" id="toggleSenha" '+(cfg.senhaAtiva?'checked':'')+' onchange="toggleSenhaAtiva()"><span class="toggle-slider"></span></label></div>';
-    html+='<div style="margin-top:12px" id="cfgAccessFields">';
-    html+='<div class="cfg-row"><div class="cfg-row-info"><div class="cfg-row-name">Usuário: <strong>'+cfg.username+'</strong></div><div class="cfg-row-sub">Administrador — acesso total</div></div>';
-    html+='<div class="cfg-row-actions"><button class="btn-sm" onclick="modalAlterarUsuario()"><span class="material-icons-round">edit</span> Alterar Usuário</button>';
-    html+='<button class="btn-sm" onclick="modalAlterarSenha()"><span class="material-icons-round">key</span> Alterar Senha</button></div></div>';
-    html+='</div></div>';
+    html+='</div>';
+
+    /* GERENCIAR USUÁRIOS */
+    html+='<div class="config-section"><h3><span class="material-icons-round">manage_accounts</span> Gerenciar Usuários</h3>';
+    html+='<p>Adicione, edite ou remova usuários do sistema.</p>';
+    html+='<div class="config-toolbar"><button class="btn-primary" onclick="modalAddUsuario()"><span class="material-icons-round" style="font-size:18px">person_add</span> Adicionar Usuário</button></div>';
+    for(var i=0;i<users.length;i++){
+        var sl=users[i].login.replace(/'/g,"\\'");
+        html+='<div class="cfg-row"><div class="cfg-row-info"><div class="cfg-row-name">'+users[i].nome+'</div><div class="cfg-row-sub">'+users[i].cargo+' · Login: '+users[i].login+'</div></div>';
+        html+='<div class="cfg-row-actions">';
+        html+='<button class="btn-sm" onclick="modalEditUsuario('+i+')"><span class="material-icons-round">edit</span> Editar</button>';
+        html+='<button class="btn-sm" onclick="modalAlterarSenhaUsuario('+i+')"><span class="material-icons-round">key</span> Senha</button>';
+        if(users.length>1){
+            html+='<button class="btn-sm danger" onclick="confirmarRemoverUsuario('+i+')"><span class="material-icons-round">delete</span> Remover</button>';
+        }
+        html+='</div></div>';
+    }
+    html+='</div>';
 
     /* OPERADORES */
     html+='<div class="config-section"><h3><span class="material-icons-round">people</span> Operadores</h3>';
@@ -529,23 +569,78 @@ function renderConfiguracoes(){
 /* CONFIG: ACESSO */
 function toggleSenhaAtiva(){
     var cfg=loadConfig();cfg.senhaAtiva=ge("toggleSenha").checked;saveConfig(cfg);
-    if(!cfg.senhaAtiva)localStorage.setItem(SK_SESSION,"1");
+    if(!cfg.senhaAtiva){
+        var users=loadUsers();
+        setLoggedUser(users[0]||{login:"admin",nome:"Administrador",cargo:"Administrador"});
+    }
 }
-function modalAlterarUsuario(){
-    var cfg=loadConfig();
-    abrirModal("Alterar Usuário",'<div class="field-group"><label>Novo Usuário</label><input type="text" id="mNewUser" value="'+cfg.username+'"></div><button class="btn-primary" onclick="salvarNovoUsuario()">Salvar</button>');
+
+/* CONFIG: USUÁRIOS - CRUD */
+function modalAddUsuario(){
+    abrirModal("Adicionar Usuário",
+        '<div class="field-group"><label>Login</label><input type="text" id="mULogin" placeholder="Ex: vandreisson"></div>'+
+        '<div class="field-group"><label>Senha</label><input type="password" id="mUSenha" placeholder="Senha de acesso"></div>'+
+        '<div class="field-group"><label>Nome</label><input type="text" id="mUNome" placeholder="Nome completo"></div>'+
+        '<div class="field-group"><label>Cargo</label><input type="text" id="mUCargo" placeholder="Ex: Supervisor" value="Supervisor"></div>'+
+        '<button class="btn-primary" onclick="salvarNovoUsuario()">Adicionar</button>');
 }
 function salvarNovoUsuario(){
-    var v=ge("mNewUser").value.trim();if(!v)return;
-    var cfg=loadConfig();cfg.username=v;saveConfig(cfg);fecharModal();renderConfiguracoes();
-    ge("headerUserName").textContent=v;ge("sidebarUser").textContent="Logado: "+v;
+    var login=ge("mULogin").value.trim().toLowerCase();
+    var senha=ge("mUSenha").value;
+    var nome=ge("mUNome").value.trim();
+    var cargo=ge("mUCargo").value.trim()||"Supervisor";
+    if(!login||!senha||!nome)return;
+    var users=loadUsers();
+    for(var i=0;i<users.length;i++){if(users[i].login===login){alert("Login já existe.");return}}
+    users.push({login:login,senha:senha,nome:nome,cargo:cargo});
+    saveUsers(users);fecharModal();renderConfiguracoes();
 }
-function modalAlterarSenha(){
-    abrirModal("Alterar Senha",'<div class="field-group"><label>Nova Senha</label><input type="password" id="mNewPass" placeholder="Nova senha"></div><button class="btn-primary" onclick="salvarNovaSenha()">Salvar</button>');
+function modalEditUsuario(idx){
+    var users=loadUsers(),u=users[idx];if(!u)return;
+    abrirModal("Editar Usuário",
+        '<div class="field-group"><label>Login</label><input type="text" id="mUELogin" value="'+u.login+'" readonly style="opacity:.6"></div>'+
+        '<div class="field-group"><label>Nome</label><input type="text" id="mUENome" value="'+u.nome+'"></div>'+
+        '<div class="field-group"><label>Cargo</label><input type="text" id="mUECargo" value="'+u.cargo+'"></div>'+
+        '<button class="btn-primary" onclick="salvarEditUsuario('+idx+')">Salvar</button>');
 }
-function salvarNovaSenha(){
-    var v=ge("mNewPass").value;if(!v)return;
-    var cfg=loadConfig();cfg.password=v;saveConfig(cfg);fecharModal();renderConfiguracoes();
+function salvarEditUsuario(idx){
+    var users=loadUsers();
+    var nome=ge("mUENome").value.trim();
+    var cargo=ge("mUECargo").value.trim();
+    if(!nome)return;
+    users[idx].nome=nome;
+    users[idx].cargo=cargo||"Supervisor";
+    saveUsers(users);
+    /* Atualizar sessão se for o usuário logado */
+    var logged=getLoggedUser();
+    if(logged&&logged.login===users[idx].login){
+        setLoggedUser(users[idx]);
+        ge("headerUserName").textContent="Olá, "+users[idx].nome;
+        ge("sidebarUser").textContent="Olá, "+users[idx].nome;
+    }
+    fecharModal();renderConfiguracoes();
+}
+function modalAlterarSenhaUsuario(idx){
+    var users=loadUsers(),u=users[idx];if(!u)return;
+    abrirModal("Alterar Senha — "+u.nome,
+        '<div class="field-group"><label>Nova Senha</label><input type="password" id="mUSenhaNew" placeholder="Nova senha"></div>'+
+        '<button class="btn-primary" onclick="salvarSenhaUsuario('+idx+')">Salvar</button>');
+}
+function salvarSenhaUsuario(idx){
+    var v=ge("mUSenhaNew").value;if(!v)return;
+    var users=loadUsers();users[idx].senha=v;saveUsers(users);fecharModal();renderConfiguracoes();
+}
+function confirmarRemoverUsuario(idx){
+    var users=loadUsers(),u=users[idx];if(!u)return;
+    abrirModal("Remover Usuário",
+        '<p style="margin-bottom:16px;color:var(--text-secondary)">Remover <strong style="color:var(--text-primary)">'+u.nome+'</strong> ('+u.login+')?</p>'+
+        '<button class="btn-primary" style="background:var(--danger)" onclick="removerUsuario('+idx+')">Confirmar Remoção</button>');
+}
+function removerUsuario(idx){
+    var users=loadUsers();
+    var logged=getLoggedUser();
+    if(logged&&logged.login===users[idx].login){alert("Não é possível remover o usuário logado.");fecharModal();return}
+    users.splice(idx,1);saveUsers(users);fecharModal();renderConfiguracoes();
 }
 
 /* CONFIG: OPERADORES */
@@ -585,7 +680,6 @@ function confirmarRemoverOp(nome){
 }
 function removerOp(nome){
     var ops=loadOperadores();ops=ops.filter(function(o){return o.nome!==nome});saveOperadores(ops);
-    /* remove avaliações vinculadas */
     var a=loadAval(),mk=monthKey();
     if(a[mk]){
         var keys=Object.keys(a[mk]);
@@ -722,9 +816,11 @@ document.addEventListener("keydown",function(e){if(e.key==="Enter"&&ge("loginScr
 /* ======= INIT ======= */
 (function init(){
     checkMonthReset();
+    loadUsers(); /* Garante que users existem */
     var cfg=loadConfig();
     if(!cfg.senhaAtiva){
-        localStorage.setItem(SK_SESSION,"1");
+        var users=loadUsers();
+        setLoggedUser(users[0]||{login:"admin",nome:"Administrador",cargo:"Administrador"});
         showApp();
     }else if(checkSession()){
         showApp();
