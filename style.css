@@ -244,3 +244,13 @@ body{font-family:var(--font);background:var(--bg-primary);color:var(--text-prima
 @media(max-width:1024px){.charts-row{grid-template-columns:1fr}.avaliacoes-layout{grid-template-columns:1fr}}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main-content{margin-left:0}.menu-toggle{display:block}.kpi-grid{grid-template-columns:repeat(2,1fr)}.operadores-grid{grid-template-columns:1fr}.relatorios-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr}.login-card{padding:28px 20px}.tab-content{padding:16px}}
+img[src*="logo"],
+.logo,
+.logo-atual,
+.logo-topo,
+.logo-sidebar,
+.logo-login,
+.brand-logo,
+.sidebar-logo {
+    display: none !important;
+}
