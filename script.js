@@ -105,6 +105,14 @@ function setLoggedUser(user){
 }
 function clearSession(){localStorage.removeItem(SK_SESSION)}
 
+/* ======= PERMISSÕES ======= */
+var CARGOS_VALIDOS = ["Administrador","Coordenador","Supervisor","Monitor"];
+function isAdmin(){var u=getLoggedUser();return u&&u.cargo==="Administrador"}
+function checkAdmin(msg){
+    if(!isAdmin()){alert(msg||"Acesso restrito ao administrador.");return false}
+    return true;
+}
+
 /* ======= OPERADORES ======= */
 function loadOperadores(){
     var raw=localStorage.getItem(SK_OPS);
@@ -244,8 +252,10 @@ function showApp(){
     ge("appContainer").style.display="flex";
     var user=getLoggedUser();
     var displayName=user?user.nome:"Admin";
-    ge("headerUserName").textContent="Olá, "+displayName;
-    ge("sidebarUser").textContent="Olá, "+displayName;
+    var displayCargo=user&&user.cargo?user.cargo:"";
+    var fullDisplay="Olá, "+displayName+(displayCargo?" — "+displayCargo:"");
+    ge("headerUserName").textContent=fullDisplay;
+    ge("sidebarUser").textContent=fullDisplay;
     startClock();
     switchTab("visaoGeral");
 }
@@ -493,33 +503,50 @@ function renderCalibragem(){
 /* ======= RENDER: CONFIGURAÇÕES ======= */
 function renderConfiguracoes(){
     var cfg=loadConfig(),ops=loadOperadores(),users=loadUsers();
+    var logged=getLoggedUser();
+    var cargoLogado=logged?logged.cargo:"Monitor";
+    var ehAdmin=cargoLogado==="Administrador";
     var html='';
 
     /* INFO */
     html+='<div class="info-notice"><span class="material-icons-round">info</span>Este sistema usa localStorage — os dados ficam salvos no navegador de cada pessoa. Ao compartilhar com a equipe, cada dispositivo mantém dados independentes.</div>';
 
-    /* CONTROLE DE ACESSO */
-    html+='<div class="config-section"><h3><span class="material-icons-round">lock</span> Controle de Acesso</h3>';
-    html+='<p>Gerencie o login do sistema. Se desativar a senha, o sistema abre direto sem tela de login.</p>';
-    html+='<div class="toggle-row"><span class="toggle-label">Senha ativa (exigir login)</span><label class="toggle-switch"><input type="checkbox" id="toggleSenha" '+(cfg.senhaAtiva?'checked':'')+' onchange="toggleSenhaAtiva()"><span class="toggle-slider"></span></label></div>';
-    html+='</div>';
-
-    /* GERENCIAR USUÁRIOS */
-    html+='<div class="config-section"><h3><span class="material-icons-round">manage_accounts</span> Gerenciar Usuários</h3>';
-    html+='<p>Adicione, edite ou remova usuários do sistema.</p>';
-    html+='<div class="config-toolbar"><button class="btn-primary" onclick="modalAddUsuario()"><span class="material-icons-round" style="font-size:18px">person_add</span> Adicionar Usuário</button></div>';
-    for(var i=0;i<users.length;i++){
-        var sl=users[i].login.replace(/'/g,"\\'");
-        html+='<div class="cfg-row"><div class="cfg-row-info"><div class="cfg-row-name">'+users[i].nome+'</div><div class="cfg-row-sub">'+users[i].cargo+' · Login: '+users[i].login+'</div></div>';
-        html+='<div class="cfg-row-actions">';
-        html+='<button class="btn-sm" onclick="modalEditUsuario('+i+')"><span class="material-icons-round">edit</span> Editar</button>';
-        html+='<button class="btn-sm" onclick="modalAlterarSenhaUsuario('+i+')"><span class="material-icons-round">key</span> Senha</button>';
-        if(users.length>1){
-            html+='<button class="btn-sm danger" onclick="confirmarRemoverUsuario('+i+')"><span class="material-icons-round">delete</span> Remover</button>';
-        }
-        html+='</div></div>';
+    /* CONTROLE DE ACESSO — só Admin */
+    if(ehAdmin){
+        html+='<div class="config-section"><h3><span class="material-icons-round">lock</span> Controle de Acesso</h3>';
+        html+='<p>Gerencie o login do sistema. Se desativar a senha, o sistema abre direto sem tela de login.</p>';
+        html+='<div class="toggle-row"><span class="toggle-label">Senha ativa (exigir login)</span><label class="toggle-switch"><input type="checkbox" id="toggleSenha" '+(cfg.senhaAtiva?'checked':'')+' onchange="toggleSenhaAtiva()"><span class="toggle-slider"></span></label></div>';
+        html+='</div>';
     }
-    html+='</div>';
+
+    /* GERENCIAR USUÁRIOS — só Admin vê CRUD, Coordenador vê lista somente leitura */
+    if(ehAdmin){
+        html+='<div class="config-section"><h3><span class="material-icons-round">manage_accounts</span> Gerenciar Usuários</h3>';
+        html+='<p>Adicione, edite ou remova usuários do sistema.</p>';
+        html+='<div class="config-toolbar"><button class="btn-primary" onclick="modalAddUsuario()"><span class="material-icons-round" style="font-size:18px">person_add</span> Adicionar Usuário</button></div>';
+        for(var i=0;i<users.length;i++){
+            html+='<div class="cfg-row"><div class="cfg-row-info"><div class="cfg-row-name">'+users[i].nome+'</div><div class="cfg-row-sub">'+users[i].cargo+' · Login: '+users[i].login+'</div></div>';
+            html+='<div class="cfg-row-actions">';
+            html+='<button class="btn-sm" onclick="modalEditUsuario('+i+')"><span class="material-icons-round">edit</span> Editar</button>';
+            html+='<button class="btn-sm" onclick="modalAlterarSenhaUsuario('+i+')"><span class="material-icons-round">key</span> Senha</button>';
+            /* Não mostrar botão remover para o último admin */
+            var adminsCount=0;
+            for(var j=0;j<users.length;j++){if(users[j].cargo==="Administrador")adminsCount++}
+            var podeRemover=!(users[i].cargo==="Administrador"&&adminsCount<=1);
+            if(users.length>1&&podeRemover){
+                html+='<button class="btn-sm danger" onclick="confirmarRemoverUsuario('+i+')"><span class="material-icons-round">delete</span> Remover</button>';
+            }
+            html+='</div></div>';
+        }
+        html+='</div>';
+    }else if(cargoLogado==="Coordenador"){
+        html+='<div class="config-section"><h3><span class="material-icons-round">manage_accounts</span> Usuários do Sistema</h3>';
+        html+='<p>Visualização dos usuários cadastrados (somente leitura).</p>';
+        for(var i=0;i<users.length;i++){
+            html+='<div class="cfg-row"><div class="cfg-row-info"><div class="cfg-row-name">'+users[i].nome+'</div><div class="cfg-row-sub">'+users[i].cargo+' · Login: '+users[i].login+'</div></div></div>';
+        }
+        html+='</div>';
+    }
 
     /* OPERADORES */
     html+='<div class="config-section"><h3><span class="material-icons-round">people</span> Operadores</h3>';
@@ -553,21 +580,24 @@ function renderConfiguracoes(){
     }
     html+='</div>';
 
-    /* RESET */
+    /* RESET — só Admin */
+    if(ehAdmin){
     html+='<div class="config-section"><h3><span class="material-icons-round">restart_alt</span> Reset do Mês Atual</h3>';
     html+='<p>Salva os dados atuais no histórico e limpa as avaliações do mês.</p>';
     html+='<button class="btn-warn" onclick="resetMesAtual()">Resetar Mês</button></div>';
 
-    /* LIMPAR TUDO */
+    /* LIMPAR TUDO — só Admin */
     html+='<div class="config-section"><h3><span class="material-icons-round">delete_forever</span> Limpar Todos os Dados</h3>';
     html+='<p>Remove avaliações, histórico e operadores do localStorage.</p>';
     html+='<button class="btn-danger" onclick="limparTudo()">Limpar Tudo</button></div>';
+    }
 
     ge("configContent").innerHTML=html;
 }
 
 /* CONFIG: ACESSO */
 function toggleSenhaAtiva(){
+    if(!checkAdmin())return;
     var cfg=loadConfig();cfg.senhaAtiva=ge("toggleSenha").checked;saveConfig(cfg);
     if(!cfg.senhaAtiva){
         var users=loadUsers();
@@ -577,14 +607,21 @@ function toggleSenhaAtiva(){
 
 /* CONFIG: USUÁRIOS - CRUD */
 function modalAddUsuario(){
+    if(!checkAdmin())return;
+    var cargoOpts='';
+    for(var c=0;c<CARGOS_VALIDOS.length;c++){
+        var sel=CARGOS_VALIDOS[c]==="Supervisor"?' selected':'';
+        cargoOpts+='<option value="'+CARGOS_VALIDOS[c]+'"'+sel+'>'+CARGOS_VALIDOS[c]+'</option>';
+    }
     abrirModal("Adicionar Usuário",
         '<div class="field-group"><label>Login</label><input type="text" id="mULogin" placeholder="Ex: vandreisson"></div>'+
         '<div class="field-group"><label>Senha</label><input type="password" id="mUSenha" placeholder="Senha de acesso"></div>'+
         '<div class="field-group"><label>Nome</label><input type="text" id="mUNome" placeholder="Nome completo"></div>'+
-        '<div class="field-group"><label>Cargo</label><input type="text" id="mUCargo" placeholder="Ex: Supervisor" value="Supervisor"></div>'+
+        '<div class="field-group"><label>Cargo</label><select id="mUCargo">'+cargoOpts+'</select></div>'+
         '<button class="btn-primary" onclick="salvarNovoUsuario()">Adicionar</button>');
 }
 function salvarNovoUsuario(){
+    if(!checkAdmin())return;
     var login=ge("mULogin").value.trim().toLowerCase();
     var senha=ge("mUSenha").value;
     var nome=ge("mUNome").value.trim();
@@ -596,14 +633,21 @@ function salvarNovoUsuario(){
     saveUsers(users);fecharModal();renderConfiguracoes();
 }
 function modalEditUsuario(idx){
+    if(!checkAdmin())return;
     var users=loadUsers(),u=users[idx];if(!u)return;
+    var cargoOpts='';
+    for(var c=0;c<CARGOS_VALIDOS.length;c++){
+        var sel=CARGOS_VALIDOS[c]===u.cargo?' selected':'';
+        cargoOpts+='<option value="'+CARGOS_VALIDOS[c]+'"'+sel+'>'+CARGOS_VALIDOS[c]+'</option>';
+    }
     abrirModal("Editar Usuário",
         '<div class="field-group"><label>Login</label><input type="text" id="mUELogin" value="'+u.login+'" readonly style="opacity:.6"></div>'+
         '<div class="field-group"><label>Nome</label><input type="text" id="mUENome" value="'+u.nome+'"></div>'+
-        '<div class="field-group"><label>Cargo</label><input type="text" id="mUECargo" value="'+u.cargo+'"></div>'+
+        '<div class="field-group"><label>Cargo</label><select id="mUECargo">'+cargoOpts+'</select></div>'+
         '<button class="btn-primary" onclick="salvarEditUsuario('+idx+')">Salvar</button>');
 }
 function salvarEditUsuario(idx){
+    if(!checkAdmin())return;
     var users=loadUsers();
     var nome=ge("mUENome").value.trim();
     var cargo=ge("mUECargo").value.trim();
@@ -615,31 +659,42 @@ function salvarEditUsuario(idx){
     var logged=getLoggedUser();
     if(logged&&logged.login===users[idx].login){
         setLoggedUser(users[idx]);
-        ge("headerUserName").textContent="Olá, "+users[idx].nome;
-        ge("sidebarUser").textContent="Olá, "+users[idx].nome;
+        var fullDisplay="Olá, "+users[idx].nome+" — "+users[idx].cargo;
+        ge("headerUserName").textContent=fullDisplay;
+        ge("sidebarUser").textContent=fullDisplay;
     }
     fecharModal();renderConfiguracoes();
 }
 function modalAlterarSenhaUsuario(idx){
+    if(!checkAdmin())return;
     var users=loadUsers(),u=users[idx];if(!u)return;
     abrirModal("Alterar Senha — "+u.nome,
         '<div class="field-group"><label>Nova Senha</label><input type="password" id="mUSenhaNew" placeholder="Nova senha"></div>'+
         '<button class="btn-primary" onclick="salvarSenhaUsuario('+idx+')">Salvar</button>');
 }
 function salvarSenhaUsuario(idx){
+    if(!checkAdmin())return;
     var v=ge("mUSenhaNew").value;if(!v)return;
     var users=loadUsers();users[idx].senha=v;saveUsers(users);fecharModal();renderConfiguracoes();
 }
 function confirmarRemoverUsuario(idx){
+    if(!checkAdmin())return;
     var users=loadUsers(),u=users[idx];if(!u)return;
     abrirModal("Remover Usuário",
         '<p style="margin-bottom:16px;color:var(--text-secondary)">Remover <strong style="color:var(--text-primary)">'+u.nome+'</strong> ('+u.login+')?</p>'+
         '<button class="btn-primary" style="background:var(--danger)" onclick="removerUsuario('+idx+')">Confirmar Remoção</button>');
 }
 function removerUsuario(idx){
+    if(!checkAdmin()){fecharModal();return}
     var users=loadUsers();
     var logged=getLoggedUser();
     if(logged&&logged.login===users[idx].login){alert("Não é possível remover o usuário logado.");fecharModal();return}
+    /* Proteger último administrador */
+    if(users[idx].cargo==="Administrador"){
+        var adminsCount=0;
+        for(var j=0;j<users.length;j++){if(users[j].cargo==="Administrador")adminsCount++}
+        if(adminsCount<=1){alert("Não é possível remover o último administrador do sistema.");fecharModal();return}
+    }
     users.splice(idx,1);saveUsers(users);fecharModal();renderConfiguracoes();
 }
 
@@ -691,6 +746,7 @@ function removerOp(nome){
 
 /* CONFIG: RESET */
 function resetMesAtual(){
+    if(!checkAdmin())return;
     if(!confirm("Salvar dados do mês no histórico e resetar?"))return;
     var md=getMonthData(),keys=Object.keys(md),soma=0,cnt=0;
     for(var i=0;i<keys.length;i++){
@@ -703,6 +759,7 @@ function resetMesAtual(){
     var a=loadAval();delete a[mk];saveAval(a);renderConfiguracoes();switchTab("visaoGeral");
 }
 function limparTudo(){
+    if(!checkAdmin())return;
     if(!confirm("Apagar TODOS os dados? Esta ação é irreversível."))return;
     localStorage.removeItem(SK_AVAL);localStorage.removeItem(SK_HIST);localStorage.removeItem(SK_OPS);
     renderConfiguracoes();switchTab("visaoGeral");
