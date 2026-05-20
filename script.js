@@ -122,6 +122,35 @@ function loadOperadores(){
 }
 function saveOperadores(ops){localStorage.setItem(SK_OPS,JSON.stringify(ops))}
 
+/* Limpa avaliações órfãs (operadores removidos) do localStorage */
+function cleanOrphanedAvals(){
+    var ops=loadOperadores();
+    var opNames={};
+    for(var i=0;i<ops.length;i++)opNames[ops[i].nome]=true;
+    var a=loadAval(),mk=monthKey();
+    if(!a[mk])return;
+    var keys=Object.keys(a[mk]),changed=false;
+    for(var i=0;i<keys.length;i++){
+        var parts=keys[i].split("||");
+        if(parts.length>=2&&!opNames[parts[1]]){
+            delete a[mk][keys[i]];
+            changed=true;
+        }
+    }
+    if(changed)saveAval(a);
+}
+
+/* Sincroniza todo o sistema após add/remove de operador */
+function syncAfterOpChange(){
+    cleanOrphanedAvals();
+    /* Re-render da aba ativa */
+    var activeTab=qs(".nav-btn.active");
+    if(activeTab){
+        var tab=activeTab.getAttribute("data-tab");
+        if(tab)switchTab(tab);
+    }
+}
+
 /* ======= AVALIAÇÕES ======= */
 function monthKey(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
 function loadAval(){var r=localStorage.getItem(SK_AVAL);return r?safeJSON(r,{}):{}}
@@ -711,7 +740,7 @@ function salvarNovoOp(){
     if(!nome)return;
     var ops=loadOperadores();
     for(var i=0;i<ops.length;i++){if(ops[i].nome===nome){fecharModal();return}}
-    ops.push({nome:nome,turno:turno,carteira:carteira});saveOperadores(ops);fecharModal();renderConfiguracoes();
+    ops.push({nome:nome,turno:turno,carteira:carteira});saveOperadores(ops);fecharModal();syncAfterOpChange();
 }
 function modalEditarOperador(idx){
     var ops=loadOperadores(),op=ops[idx];if(!op)return;
@@ -725,7 +754,7 @@ function salvarEditOp(idx){
     var ops=loadOperadores();
     ops[idx].turno=ge("mEdTurno").value;
     ops[idx].carteira=ge("mEdCarteira").value.trim()||"AEGEA";
-    saveOperadores(ops);fecharModal();renderConfiguracoes();
+    saveOperadores(ops);fecharModal();syncAfterOpChange();
 }
 function confirmarRemoverOp(nome){
     abrirModal("Remover Operador",
@@ -735,13 +764,16 @@ function confirmarRemoverOp(nome){
 }
 function removerOp(nome){
     var ops=loadOperadores();ops=ops.filter(function(o){return o.nome!==nome});saveOperadores(ops);
-    var a=loadAval(),mk=monthKey();
-    if(a[mk]){
-        var keys=Object.keys(a[mk]);
-        for(var i=0;i<keys.length;i++){if(keys[i].indexOf("||"+nome)!==-1)delete a[mk][keys[i]]}
-        saveAval(a);
+    /* Remove TODAS as avaliações vinculadas ao operador em TODOS os meses */
+    var a=loadAval(),meses=Object.keys(a);
+    for(var m=0;m<meses.length;m++){
+        var keys=Object.keys(a[meses[m]]);
+        for(var i=0;i<keys.length;i++){
+            if(keys[i].indexOf("||"+nome)!==-1)delete a[meses[m]][keys[i]];
+        }
     }
-    fecharModal();renderConfiguracoes();
+    saveAval(a);
+    fecharModal();syncAfterOpChange();
 }
 
 /* CONFIG: RESET */
