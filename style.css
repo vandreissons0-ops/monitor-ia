@@ -1,6 +1,5 @@
 /* ============================================
-   Monitor.IA — Atual Assessoria — v4
-   Multi-user login via localStorage
+   Monitor.IA — Atual Assessoria — v3
    ============================================ */
 :root {
     --bg-primary: #0f1117;
@@ -205,12 +204,6 @@ body{font-family:var(--font);background:var(--bg-primary);color:var(--text-prima
 .cfg-row-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cfg-row-sub{font-size:11px;color:var(--text-muted)}
 .cfg-row-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
-
-/* USER MANAGEMENT */
-.user-avatar-sm{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;background:rgba(108,92,231,.15);color:var(--accent-light)}
-.user-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
-.user-badge.admin-badge{background:rgba(108,92,231,.2);color:var(--accent-light)}
-.user-badge.user-badge-tag{background:rgba(0,206,201,.15);color:var(--success)}
 
 /* HISTORICO */
 .hist-empty{color:var(--text-muted);font-size:12px}
