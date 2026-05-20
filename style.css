@@ -124,6 +124,11 @@ body{font-family:var(--font);background:var(--bg-primary);color:var(--text-prima
 .aval-card-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap}
 .badge-pendente{background:rgba(253,203,110,.15);color:var(--warning)}
 .badge-aplicado{background:rgba(0,206,201,.15);color:var(--success)}
+.badge-oculto{background:rgba(139,143,167,.15);color:var(--text-muted)}
+.aval-card-header-right{display:flex;align-items:center;gap:6px}
+.btn-eye{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center;transition:color .2s}
+.btn-eye:hover{color:var(--accent-light)}
+.btn-eye .material-icons-round{font-size:18px}
 .aval-card-info{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
 .aval-card-info span{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
 .aval-card-info .material-icons-round{font-size:14px}

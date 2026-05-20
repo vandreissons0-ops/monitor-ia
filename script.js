@@ -574,6 +574,9 @@ function renderChartStatus(done,pend){
 /* ======= RENDER: AVALIAÇÕES ======= */
 function renderAvaliacoes(){
     var todayOps=getTodaySchedule(),md=getMonthData(),today=new Date().toISOString().split("T")[0],ops=loadOperadores();
+    var logged=getLoggedUser();
+    var loggedLogin=logged?logged.login:"";
+    var ehAdmin=logged&&logged.cargo==="Administrador";
     var totalH=todayOps.length,feitoH=0,somaH=0;
     for(var i=0;i<todayOps.length;i++){
         var k=today+"||"+todayOps[i];
@@ -592,22 +595,77 @@ function renderAvaliacoes(){
         var turno="—",carteira="—";
         for(var o=0;o<ops.length;o++){if(ops[o].nome===nome){turno=ops[o].turno;carteira=ops[o].carteira||"—";break}}
         var isPend=av.nota===null||av.nota===undefined||av.nota==="";
-        var bc=isPend?"badge-pendente":"badge-aplicado",bt=isPend?"Pendente":"Nota: "+av.nota;
+        var avaliador=av.avaliador||"";
+        /* Determinar se o usuário logado pode ver esta nota */
+        var podeVer=isPend||ehAdmin||(avaliador===loggedLogin)||(avaliador==="");
+        var bc,bt;
+        if(isPend){bc="badge-pendente";bt="Pendente"}
+        else if(podeVer){bc="badge-aplicado";bt="Nota: "+av.nota}
+        else{bc="badge-oculto";bt="Nota: •••"}
         var sn=nome.replace(/'/g,"\\'");
-        html+='<div class="aval-card"><div class="aval-card-header"><span class="aval-card-name">'+nome+'</span><span class="aval-card-badge '+bc+'">'+bt+'</span></div>'+
-            '<div class="aval-card-info"><span><span class="material-icons-round">schedule</span>'+turno+'</span><span><span class="material-icons-round">work</span>'+carteira+'</span><span><span class="material-icons-round">calendar_today</span>'+today+'</span></div>'+
-            '<div class="aval-card-fields"><div class="field-row"><label>Nota (0-100)</label><input type="number" min="0" max="100" id="nota_'+i+'" value="'+(av.nota||"")+'"></div>'+
-            '<div class="field-row"><label>Ponto de Atenção</label><textarea id="obs_'+i+'">'+(av.obs||"")+'</textarea></div></div>'+
+        /* Campos: se não pode ver, esconder nota e obs */
+        var notaVal=podeVer?(av.nota||""):"";
+        var obsVal=podeVer?(av.obs||""):"";
+        var fieldDisabled=(!isPend&&!podeVer)?' disabled style="opacity:.4"':'';
+        /* Botão do olho: só aparece quando tem nota e não é o próprio avaliador */
+        var eyeBtn="";
+        if(!isPend){
+            if(podeVer){
+                eyeBtn='<button class="btn-eye" onclick="toggleNotaVisibility('+i+')" title="Ocultar nota"><span class="material-icons-round">visibility</span></button>';
+            }else{
+                eyeBtn='<button class="btn-eye" onclick="toggleNotaVisibility('+i+')" title="Ver nota"><span class="material-icons-round">visibility_off</span></button>';
+            }
+        }
+        /* Info do avaliador */
+        var avalInfo=(!isPend&&avaliador)?'<span><span class="material-icons-round">person</span>'+avaliador+'</span>':"";
+        html+='<div class="aval-card" data-avaliador="'+avaliador+'" data-pode-ver="'+(podeVer?"1":"0")+'" id="avalCard_'+i+'">'+
+            '<div class="aval-card-header"><span class="aval-card-name">'+nome+'</span><div class="aval-card-header-right">'+eyeBtn+'<span class="aval-card-badge '+bc+'">'+bt+'</span></div></div>'+
+            '<div class="aval-card-info"><span><span class="material-icons-round">schedule</span>'+turno+'</span><span><span class="material-icons-round">work</span>'+carteira+'</span><span><span class="material-icons-round">calendar_today</span>'+today+'</span>'+avalInfo+'</div>'+
+            '<div class="aval-card-fields" id="avalFields_'+i+'"'+fieldDisabled+'>'+
+            '<div class="field-row"><label>Nota (0-100)</label><input type="number" min="0" max="100" id="nota_'+i+'" value="'+notaVal+'"'+((!isPend&&!podeVer)?" readonly":"")+'></div>'+
+            '<div class="field-row"><label>Ponto de Atenção</label><textarea id="obs_'+i+'"'+((!isPend&&!podeVer)?" readonly":"")+'>'+obsVal+'</textarea></div></div>'+
             '<div class="aval-card-actions"><button class="btn-save" onclick="salvarAval(\''+sn+'\','+i+')"><span class="material-icons-round" style="font-size:16px">save</span> Salvar</button>'+
             '<button class="btn-reset" onclick="resetAval(\''+sn+'\','+i+')"><span class="material-icons-round" style="font-size:16px">restart_alt</span> Resetar</button></div></div>';
     }
     ge("avalList").innerHTML=html;
 }
+/* Alterna visibilidade da nota ao clicar no olho */
+function toggleNotaVisibility(idx){
+    var todayOps=getTodaySchedule(),md=getMonthData(),today=new Date().toISOString().split("T")[0];
+    if(idx>=todayOps.length)return;
+    var nome=todayOps[idx],key=today+"||"+nome,av=md[key];
+    if(!av||av.nota===null||av.nota===undefined||av.nota==="")return;
+    var card=ge("avalCard_"+idx);if(!card)return;
+    var podeVer=card.getAttribute("data-pode-ver")==="1";
+    var fields=ge("avalFields_"+idx);
+    var notaInput=ge("nota_"+idx);
+    var obsInput=ge("obs_"+idx);
+    var badge=card.querySelector(".aval-card-badge");
+    var eyeIcon=card.querySelector(".btn-eye .material-icons-round");
+    if(podeVer){
+        /* Esconder */
+        card.setAttribute("data-pode-ver","0");
+        notaInput.value="";obsInput.value="";
+        notaInput.setAttribute("readonly","");obsInput.setAttribute("readonly","");
+        fields.style.opacity=".4";
+        if(badge){badge.textContent="Nota: •••";badge.className="aval-card-badge badge-oculto"}
+        if(eyeIcon){eyeIcon.textContent="visibility_off"}
+    }else{
+        /* Mostrar */
+        card.setAttribute("data-pode-ver","1");
+        notaInput.value=av.nota;obsInput.value=av.obs||"";
+        notaInput.removeAttribute("readonly");obsInput.removeAttribute("readonly");
+        fields.style.opacity="";
+        if(badge){badge.textContent="Nota: "+av.nota;badge.className="aval-card-badge badge-aplicado"}
+        if(eyeIcon){eyeIcon.textContent="visibility"}
+    }
+}
 function salvarAval(nome,idx){
     var nota=ge("nota_"+idx).value,obs=ge("obs_"+idx).value;
     if(nota===""||parseFloat(nota)<0||parseFloat(nota)>100)return;
     var today=new Date().toISOString().split("T")[0],md=getMonthData();
-    md[today+"||"+nome]={nota:parseFloat(nota),obs:obs};setMonthData(md);renderAvaliacoes();
+    var logged=getLoggedUser();
+    md[today+"||"+nome]={nota:parseFloat(nota),obs:obs,avaliador:logged?logged.login:""};setMonthData(md);renderAvaliacoes();
 }
 function resetAval(nome,idx){
     var today=new Date().toISOString().split("T")[0],md=getMonthData();
