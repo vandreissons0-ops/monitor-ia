@@ -122,22 +122,21 @@ function loadOperadores(){
 }
 function saveOperadores(ops){localStorage.setItem(SK_OPS,JSON.stringify(ops))}
 
-/* Limpa avaliações órfãs (operadores removidos) do localStorage */
+/* Limpa avaliações órfãs (operadores removidos) do mês atual */
 function cleanOrphanedAvals(){
     var ops=loadOperadores();
     var opNames={};
     for(var i=0;i<ops.length;i++)opNames[ops[i].nome]=true;
-    var a=loadAval(),mk=monthKey();
-    if(!a[mk])return;
-    var keys=Object.keys(a[mk]),changed=false;
+    var md=getMonthData();
+    var keys=Object.keys(md),changed=false;
     for(var i=0;i<keys.length;i++){
         var parts=keys[i].split("||");
         if(parts.length>=2&&!opNames[parts[1]]){
-            delete a[mk][keys[i]];
+            delete md[keys[i]];
             changed=true;
         }
     }
-    if(changed)saveAval(a);
+    if(changed)setMonthData(md);
 }
 
 /* Sincroniza todo o sistema após add/remove de operador */
@@ -151,12 +150,55 @@ function syncAfterOpChange(){
     }
 }
 
-/* ======= AVALIAÇÕES ======= */
+/* ======= AVALIAÇÕES (chave separada por mês: monitorIA_aval_YYYY_MM) ======= */
 function monthKey(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
-function loadAval(){var r=localStorage.getItem(SK_AVAL);return r?safeJSON(r,{}):{}}
-function saveAval(a){localStorage.setItem(SK_AVAL,JSON.stringify(a))}
-function getMonthData(){var a=loadAval(),mk=monthKey();if(!a[mk])a[mk]={};return a[mk]}
-function setMonthData(d){var a=loadAval();a[monthKey()]=d;saveAval(a)}
+function avalStorageKey(mk){return "monitorIA_aval_"+mk.replace("-","_")}
+function getMonthData(mk){
+    var key=avalStorageKey(mk||monthKey());
+    var raw=localStorage.getItem(key);
+    return raw?safeJSON(raw,{}):{};
+}
+function setMonthData(d,mk){
+    var key=avalStorageKey(mk||monthKey());
+    localStorage.setItem(key,JSON.stringify(d));
+}
+function deleteMonthData(mk){
+    localStorage.removeItem(avalStorageKey(mk||monthKey()));
+}
+/* Lista todas as chaves de avaliação mensal no localStorage */
+function listAvalKeys(){
+    var result=[];
+    for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("monitorIA_aval_")===0)result.push(k);
+    }
+    return result;
+}
+/* Extrai "YYYY-MM" de uma chave "monitorIA_aval_YYYY_MM" */
+function mkFromStorageKey(sk){
+    var parts=sk.replace("monitorIA_aval_","").split("_");
+    if(parts.length>=2)return parts[0]+"-"+parts[1];
+    return null;
+}
+/* Migração: se existir chave antiga monitorIA_avaliacoes, migrar para chaves separadas */
+function migrateAvalIfNeeded(){
+    var oldRaw=localStorage.getItem(SK_AVAL);
+    if(!oldRaw)return;
+    var oldData=safeJSON(oldRaw,null);
+    if(!oldData||typeof oldData!=="object")return;
+    var meses=Object.keys(oldData);
+    for(var i=0;i<meses.length;i++){
+        if(meses[i]&&typeof oldData[meses[i]]==="object"&&Object.keys(oldData[meses[i]]).length>0){
+            var newKey=avalStorageKey(meses[i]);
+            /* Não sobrescrever se já migrado */
+            if(!localStorage.getItem(newKey)){
+                localStorage.setItem(newKey,JSON.stringify(oldData[meses[i]]));
+            }
+        }
+    }
+    /* Remover chave antiga */
+    localStorage.removeItem(SK_AVAL);
+}
 
 /* ======= HISTÓRICO ======= */
 function loadHist(){var r=localStorage.getItem(SK_HIST);return r?safeJSON(r,{}):{}}
@@ -226,24 +268,27 @@ function getTodaySchedule(){
 
 /* ======= AUTO RESET MENSAL ======= */
 function checkMonthReset(){
-    var a=loadAval(),mk=monthKey(),keys=Object.keys(a);
-    for(var i=0;i<keys.length;i++){
-        if(keys[i]!==mk&&Object.keys(a[keys[i]]).length>0){
-            var oldData=a[keys[i]],soma=0,cnt=0,total=0;
-            var dk=Object.keys(oldData);
-            for(var j=0;j<dk.length;j++){
-                total++;
-                if(oldData[dk[j]].nota!==null&&oldData[dk[j]].nota!==undefined&&oldData[dk[j]].nota!==""){
-                    soma+=parseFloat(oldData[dk[j]].nota);cnt++;
-                }
+    var mk=monthKey();
+    var avalKeys=listAvalKeys();
+    for(var i=0;i<avalKeys.length;i++){
+        var mesKey=mkFromStorageKey(avalKeys[i]);
+        if(!mesKey||mesKey===mk)continue;
+        var raw=localStorage.getItem(avalKeys[i]);
+        var oldData=raw?safeJSON(raw,null):null;
+        if(!oldData||Object.keys(oldData).length===0){localStorage.removeItem(avalKeys[i]);continue}
+        var soma=0,cnt=0,total=0;
+        var dk=Object.keys(oldData);
+        for(var j=0;j<dk.length;j++){
+            total++;
+            if(oldData[dk[j]].nota!==null&&oldData[dk[j]].nota!==undefined&&oldData[dk[j]].nota!==""){
+                soma+=parseFloat(oldData[dk[j]].nota);cnt++;
             }
-            var h=loadHist();
-            h[keys[i]]={totalPlanejado:total,totalRealizado:cnt,pendente:total-cnt,media:cnt>0?(soma/cnt).toFixed(1):"—",pctConclusao:total>0?((cnt/total)*100).toFixed(1):"0"};
-            saveHist(h);
-            delete a[keys[i]];
         }
+        var h=loadHist();
+        h[mesKey]={totalPlanejado:total,totalRealizado:cnt,pendente:total-cnt,media:cnt>0?(soma/cnt).toFixed(1):"—",pctConclusao:total>0?((cnt/total)*100).toFixed(1):"0"};
+        saveHist(h);
+        localStorage.removeItem(avalKeys[i]);
     }
-    saveAval(a);
 }
 
 /* ======= LOGIN ======= */
@@ -326,30 +371,66 @@ function fecharModal(){ge("modalOverlay").style.display="none"}
 function countSlotsByOp(){
     var sched=getScheduleForMonth(),md=getMonthData(),result={};
     var dates=Object.keys(sched);
+    /* Descobrir semanas */
+    var weekSet={};
     for(var d=0;d<dates.length;d++){
-        var names=sched[dates[d]];
-        for(var n=0;n<names.length;n++){
-            if(!result[names[n]])result[names[n]]={total:0,feito:0,soma:0};
-            result[names[n]].total++;
-            var key=dates[d]+"||"+names[n];
-            if(md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!==""){
-                result[names[n]].feito++;
-                result[names[n]].soma+=parseFloat(md[key].nota);
+        weekSet[getWeekNum(new Date(dates[d]+"T12:00:00"))]=true;
+    }
+    var numWeeks=Object.keys(weekSet).length;
+    /* Cada operador tem numWeeks slots (1 por semana) */
+    var ops=loadOperadores();
+    for(var i=0;i<ops.length;i++){
+        result[ops[i].nome]={total:numWeeks,feito:0,soma:0};
+    }
+    /* Contar feitos: cada operador conta 1x por semana */
+    var wkNums=Object.keys(weekSet);
+    for(var w=0;w<wkNums.length;w++){
+        var wkNum=parseInt(wkNums[w]);
+        var opsDone={};
+        for(var d=0;d<dates.length;d++){
+            if(getWeekNum(new Date(dates[d]+"T12:00:00"))!==wkNum)continue;
+            var names=sched[dates[d]];
+            for(var n=0;n<names.length;n++){
+                var key=dates[d]+"||"+names[n];
+                if(!opsDone[names[n]]&&md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!==""){
+                    opsDone[names[n]]=true;
+                    if(result[names[n]]){
+                        result[names[n]].feito++;
+                        result[names[n]].soma+=parseFloat(md[key].nota);
+                    }
+                }
             }
         }
     }
     return result;
 }
 function totalStats(){
+    var ops=loadOperadores();
+    var nOps=ops.length;
     var sched=getScheduleForMonth(),md=getMonthData();
-    var totalSlots=0,totalDone=0,soma=0;
+    /* Contar semanas operacionais */
+    var weekSet={};
     var dates=Object.keys(sched);
     for(var d=0;d<dates.length;d++){
-        var names=sched[dates[d]];totalSlots+=names.length;
-        for(var n=0;n<names.length;n++){
-            var key=dates[d]+"||"+names[n];
-            if(md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!==""){
-                totalDone++;soma+=parseFloat(md[key].nota);
+        weekSet[getWeekNum(new Date(dates[d]+"T12:00:00"))]=true;
+    }
+    var numWeeks=Object.keys(weekSet).length;
+    var totalSlots=nOps*numWeeks;
+    /* Contar avaliados: cada operador conta 1x por semana */
+    var totalDone=0,soma=0;
+    var wkNums=Object.keys(weekSet);
+    for(var w=0;w<wkNums.length;w++){
+        var wkNum=parseInt(wkNums[w]);
+        var opsDone={};
+        for(var d=0;d<dates.length;d++){
+            if(getWeekNum(new Date(dates[d]+"T12:00:00"))!==wkNum)continue;
+            var names=sched[dates[d]];
+            for(var n=0;n<names.length;n++){
+                var key=dates[d]+"||"+names[n];
+                if(!opsDone[names[n]]&&md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!==""){
+                    opsDone[names[n]]=true;
+                    totalDone++;soma+=parseFloat(md[key].nota);
+                }
             }
         }
     }
@@ -382,18 +463,33 @@ function kpi(icon,label,value,color){
 function destroyChart(n){if(chartInstances[n]){chartInstances[n].destroy();chartInstances[n]=null}}
 function renderChartSemanal(){
     destroyChart("semanal");
+    var ops=loadOperadores();
+    var nOps=ops.length;
     var sched=getScheduleForMonth(),md=getMonthData(),weeks={};
     var dates=Object.keys(sched).sort();
+    /* Descobrir semanas */
     for(var i=0;i<dates.length;i++){
         var wk="Sem "+getWeekNum(new Date(dates[i]+"T12:00:00"));
-        if(!weeks[wk])weeks[wk]={total:0,feito:0};
-        var names=sched[dates[i]];weeks[wk].total+=names.length;
-        for(var j=0;j<names.length;j++){
-            var key=dates[i]+"||"+names[j];
-            if(md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!=="")weeks[wk].feito++;
+        if(!weeks[wk])weeks[wk]={feito:0};
+    }
+    /* Contar avaliados: cada operador conta 1x por semana */
+    var wkKeys=Object.keys(weeks);
+    for(var w=0;w<wkKeys.length;w++){
+        var wkNum=parseInt(wkKeys[w].replace("Sem ",""));
+        var opsDone={};
+        for(var i=0;i<dates.length;i++){
+            if(getWeekNum(new Date(dates[i]+"T12:00:00"))!==wkNum)continue;
+            var names=sched[dates[i]];
+            for(var j=0;j<names.length;j++){
+                var key=dates[i]+"||"+names[j];
+                if(!opsDone[names[j]]&&md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!==""){
+                    opsDone[names[j]]=true;
+                    weeks[wkKeys[w]].feito++;
+                }
+            }
         }
     }
-    var labels=Object.keys(weeks),d1=labels.map(function(l){return weeks[l].total}),d2=labels.map(function(l){return weeks[l].feito});
+    var labels=wkKeys,d1=labels.map(function(){return nOps}),d2=labels.map(function(l){return weeks[l].feito});
     var ctx=ge("chartSemanal").getContext("2d");
     chartInstances["semanal"]=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:[
         {label:"Programado",data:d1,backgroundColor:"rgba(108,92,231,.3)",borderColor:"#6c5ce7",borderWidth:1},
@@ -452,23 +548,39 @@ function resetAval(nome,idx){
 
 /* ======= RENDER: EVOLUÇÃO ======= */
 function renderEvolucao(){
+    var ops=loadOperadores();
+    var nOps=ops.length;
     var sched=getScheduleForMonth(),md=getMonthData(),weeks={};
     var dates=Object.keys(sched).sort();
+    /* Primeiro: descobrir quais semanas existem */
     for(var i=0;i<dates.length;i++){
         var wk="Semana "+getWeekNum(new Date(dates[i]+"T12:00:00"));
-        if(!weeks[wk])weeks[wk]={total:0,feito:0,soma:0};
-        var names=sched[dates[i]];weeks[wk].total+=names.length;
-        for(var j=0;j<names.length;j++){
-            var key=dates[i]+"||"+names[j];
-            if(md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!==""){weeks[wk].feito++;weeks[wk].soma+=parseFloat(md[key].nota)}
+        if(!weeks[wk])weeks[wk]={feito:0,soma:0};
+    }
+    /* Contar avaliados: cada operador conta 1x por semana (não por dia) */
+    var wkKeys=Object.keys(weeks);
+    for(var w=0;w<wkKeys.length;w++){
+        var wkNum=parseInt(wkKeys[w].replace("Semana ",""));
+        var opsDone={};
+        for(var i=0;i<dates.length;i++){
+            if(getWeekNum(new Date(dates[i]+"T12:00:00"))!==wkNum)continue;
+            var names=sched[dates[i]];
+            for(var j=0;j<names.length;j++){
+                var key=dates[i]+"||"+names[j];
+                if(!opsDone[names[j]]&&md[key]&&md[key].nota!==null&&md[key].nota!==undefined&&md[key].nota!==""){
+                    opsDone[names[j]]=true;
+                    weeks[wkKeys[w]].feito++;
+                    weeks[wkKeys[w]].soma+=parseFloat(md[key].nota);
+                }
+            }
         }
     }
-    var html="",wks=Object.keys(weeks);
-    for(var i=0;i<wks.length;i++){
-        var w=weeks[wks[i]],pct=w.total>0?((w.feito/w.total)*100).toFixed(0):0,med=w.feito>0?(w.soma/w.feito).toFixed(1):"—";
-        html+='<div class="evolucao-week"><h3><span class="material-icons-round" style="color:var(--accent);font-size:18px">date_range</span>'+wks[i]+'</h3>'+
+    var html="";
+    for(var i=0;i<wkKeys.length;i++){
+        var w=weeks[wkKeys[i]],pct=nOps>0?((w.feito/nOps)*100).toFixed(0):0,med=w.feito>0?(w.soma/w.feito).toFixed(1):"—";
+        html+='<div class="evolucao-week"><h3><span class="material-icons-round" style="color:var(--accent);font-size:18px">date_range</span>'+wkKeys[i]+'</h3>'+
             '<div class="evolucao-bar"><div class="evolucao-bar-fill" style="width:'+pct+'%"></div></div>'+
-            '<div class="evolucao-stats"><span>Avaliados: <strong style="color:var(--success)">'+w.feito+'/'+w.total+'</strong></span>'+
+            '<div class="evolucao-stats"><span>Avaliados: <strong style="color:var(--success)">'+w.feito+'/'+nOps+'</strong></span>'+
             '<span>Conclusão: <strong style="color:var(--accent-light)">'+pct+'%</strong></span>'+
             '<span>Média: <strong style="color:var(--info)">'+med+'</strong></span></div></div>';
     }
@@ -764,15 +876,13 @@ function confirmarRemoverOp(nome){
 }
 function removerOp(nome){
     var ops=loadOperadores();ops=ops.filter(function(o){return o.nome!==nome});saveOperadores(ops);
-    /* Remove TODAS as avaliações vinculadas ao operador em TODOS os meses */
-    var a=loadAval(),meses=Object.keys(a);
-    for(var m=0;m<meses.length;m++){
-        var keys=Object.keys(a[meses[m]]);
-        for(var i=0;i<keys.length;i++){
-            if(keys[i].indexOf("||"+nome)!==-1)delete a[meses[m]][keys[i]];
-        }
+    /* Remove avaliações vinculadas ao operador SOMENTE no mês atual */
+    var md=getMonthData();
+    var keys=Object.keys(md);
+    for(var i=0;i<keys.length;i++){
+        if(keys[i].indexOf("||"+nome)!==-1)delete md[keys[i]];
     }
-    saveAval(a);
+    setMonthData(md);
     fecharModal();syncAfterOpChange();
 }
 
@@ -780,20 +890,21 @@ function removerOp(nome){
 function resetMesAtual(){
     if(!checkAdmin())return;
     if(!confirm("Salvar dados do mês no histórico e resetar?"))return;
-    var md=getMonthData(),keys=Object.keys(md),soma=0,cnt=0;
-    for(var i=0;i<keys.length;i++){
-        if(md[keys[i]].nota!==null&&md[keys[i]].nota!==undefined&&md[keys[i]].nota!==""){soma+=parseFloat(md[keys[i]].nota);cnt++}
-    }
     var st=totalStats();
     var h=loadHist(),mk=monthKey();
     h[mk]={totalPlanejado:st.totalSlots,totalRealizado:st.totalDone,pendente:st.pendentes,media:st.media,pctConclusao:st.pct};
     saveHist(h);
-    var a=loadAval();delete a[mk];saveAval(a);renderConfiguracoes();switchTab("visaoGeral");
+    deleteMonthData();renderConfiguracoes();switchTab("visaoGeral");
 }
 function limparTudo(){
     if(!checkAdmin())return;
     if(!confirm("Apagar TODOS os dados? Esta ação é irreversível."))return;
-    localStorage.removeItem(SK_AVAL);localStorage.removeItem(SK_HIST);localStorage.removeItem(SK_OPS);
+    /* Remover todas as chaves de avaliação mensal */
+    var avalKeys=listAvalKeys();
+    for(var i=0;i<avalKeys.length;i++)localStorage.removeItem(avalKeys[i]);
+    /* Remover chave antiga caso exista */
+    localStorage.removeItem(SK_AVAL);
+    localStorage.removeItem(SK_HIST);localStorage.removeItem(SK_OPS);
     renderConfiguracoes();switchTab("visaoGeral");
 }
 
@@ -904,6 +1015,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Enter"&&ge("loginScr
 
 /* ======= INIT ======= */
 (function init(){
+    migrateAvalIfNeeded();
     checkMonthReset();
     loadUsers(); /* Garante que users existem */
     var cfg=loadConfig();
